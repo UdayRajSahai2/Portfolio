@@ -1,0 +1,57 @@
+/* Floating text over the scene: the hover label and the speech bubble. */
+
+.tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-tooltip);
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-input);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease-snap);
+}
+.tip.show {
+  opacity: 1;
+}
+.bubble {
+  --tail: 50%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: var(--z-dropdown);
+  width: max-content;
+  max-width: min(18rem, calc(100% - 24px));
+  padding: var(--space-xs) var(--space-md);
+  border: 2px solid var(--color-accent-3);
+  border-radius: var(--radius-stock);
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: var(--shadow-card);
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-short) var(--ease-snap);
+}
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: var(--tail);
+  bottom: -8px;
+  width: 14px;
+  height: 14px;
+  border-right: 2px solid var(--color-accent-3);
+  border-bottom: 2px solid var(--color-accent-3);
+  background: var(--color-card);
+  transform: translateX(-50%) rotate(45deg);
+}
+.bubble.show {
+  opacity: 1;
+}

@@ -1,51 +1,50 @@
 # Uday's Room
 
-A 3D portfolio built with three.js. Visitors explore a late-evening room where each object stands for an interest, and clicking an object opens the projects behind it.
+The portfolio of Uday Raj Sahai, full stack developer. It is a full-width 3D room built with three.js.
 
-| Object | Section |
-|---|---|
-| Chessboard | Chess (Caissa) |
-| Monitor | Code |
-| Turntable | Music |
-| Bookshelf | Books |
-| Corkboard | About |
-| Envelope | Contact |
-| Desk lamp | Turns the light on and off |
+You start outside a red door. Uday's character waves and says hello. Press **Enter**, and he opens the door and walks you in. Each corner of the room is one part of his life:
+
+| Zone | Opens | Try in close-up |
+|---|---|---|
+| Desk and monitor | Code (projects, stack, GitHub languages) | He sits and types; click the screen to switch files |
+| Bookshelf and reading chair | Books: reading now, book club, philosophy, psychology | He takes *Tuesdays with Morrie* to the chair and reads |
+| TV and sofa | Films, TV series and anime | He sits with the remote; click the TV and he changes channel (One Piece, Breaking Bad, Interstellar) |
+| Rack and bench | Gym | He lies down and bench presses |
+| Telescope at the window | Stars (astronomy) | He leans to the eyepiece; click it to look through: drag, arrow keys and zoom around real constellations |
+| Chess table | Chess (Caissa) | He sits at the board; click a piece to make it hop |
+| Envelope on the desk | Say hello | |
+| The character | About me | He introduces himself first |
+
+The desk lamp switches on and off.
 
 ## Run it
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
+npm test         # node --test, no extra dependencies
 npm run build    # outputs to dist/
 ```
 
 ## Edit your content
 
-Everything you'd edit lives in `src/data/content.js`. That includes your name, intro, interests, projects (with links), contact links and the code typed on the monitor. Lines that need your details are marked `TODO`.
+Every word, link and project lives in `src/data/content.js`. The `favourites` lists under Books and Films are empty on purpose. Add your own titles and they will show up. Empty lists don't render.
 
-If you give a project a `url`, it becomes a link. Without one, it shows "Link coming soon".
+## Working on it
 
-## The character
+Read [`AGENTS.md`](AGENTS.md) first. Then read the role guide in [`docs/`](docs/README.md) that fits the task. Requirements and the design system live in [`portfolio-spec.md`](portfolio-spec.md).
 
-A character walks you around the room:
-- Clicking an object, or a section in the dock, makes it walk over, turn and say a line. Then the camera moves in close and the section opens.
-- Clicking the floor makes it walk to that spot.
-- Clicking the character makes it wave.
-
-To make it look like you, edit `avatar` in `content.js`: skin and hair colors, `hairStyle` (short, curly, long, bun, buzz or spiky), `facialHair`, `glasses`, clothes and the symbol on the shirt. You can change each interest's speech line with its `say` field.
-
-## Add a new interest
-
-1. Add an entry to `interests` in `content.js`. It shows up in the dock and opens a panel right away.
-2. To give it an object in the room, build a group in `src/scene/room.js` and register it as `hotspots.<id>`. The group needs a `group`, a `view` (camera `pos` and `target`), and a `stand` spot (where the character walks to and what it faces). It can optionally have `onFocus`, `onBlur` and `interact` handlers. Then add the new object's footprint to `obstacles` so the character walks around it. The existing hotspots are good examples to copy.
+The look comes from Hallmark's **Hum** theme: cream paper, blue-black ink, pear for the main action, blue for links and coral for one loud moment. All colours are tokens in `src/styles/tokens.css`, and the 3D room reads the same tokens through `src/scene/palette.js`.
 
 ## Files
 
-- `src/main.js`: renderer, camera, controls, picking and the camera flights
-- `src/scene/room.js`: every object, built from primitives (there are no model files)
-- `src/ui.js`: dock, panel, tooltip and loader
-- `src/sound.js`: synthesised WebAudio sound effects and the lo-fi loop
-- `src/style.css`: styles; the panel turns into a bottom sheet on phones
+- `src/main.js`: boot
+- `src/world/`: the 3D side wired together (camera, picking, walking, activities, the door, the telescope view)
+- `src/scene/`: the room, built from primitives; one file per zone in `scene/zones/`, the avatar in `scene/character/`
+- `src/ui/`: the page around the scene (intro, dock, panel, bubble)
+- `src/styles/`: tokens, base rules and one stylesheet per component, imported by `src/style.css`
+- `src/sound.js`: synthesised sound effects and the lo-fi loop
 
-The site respects reduced-motion settings. Without WebGL, it falls back to the dock and panels.
+The full map, and which module may import which, is in [`AGENTS.md`](AGENTS.md).
+
+It respects reduced-motion settings. Without WebGL, the dock and panels still work. With JavaScript off, a short profile with links is shown.

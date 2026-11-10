@@ -1,0 +1,75 @@
+/* The telescope's sky view: an eyepiece over the canvas, with its controls. */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: max(var(--space-lg), env(safe-area-inset-top)) var(--gutter) max(var(--space-lg), env(safe-area-inset-bottom));
+  color: var(--color-paper);
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 52%, color-mix(in oklab, var(--color-ink) 92%, transparent) 72%);
+}
+.sky > * {
+  pointer-events: auto;
+}
+.sky-top {
+  display: grid;
+  gap: var(--space-2xs);
+}
+.sky-title {
+  font-size: var(--text-2xl);
+}
+.sky-status {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+.sky-bottom {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-sm);
+}
+.sky-help {
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.sky-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+}
+.sky-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-areas: '. up .' 'left . right' '. down .';
+  gap: var(--space-2xs);
+}
+.sky-pad [data-sky='up'] { grid-area: up; }
+.sky-pad [data-sky='left'] { grid-area: left; }
+.sky-pad [data-sky='right'] { grid-area: right; }
+.sky-pad [data-sky='down'] { grid-area: down; }
+.sky-zoom {
+  display: flex;
+  gap: var(--space-2xs);
+}
+.sky-btn {
+  width: 44px;
+  padding: 0;
+  font-size: var(--text-xs);
+}
+.sky-zoom .sky-btn {
+  font-size: var(--text-xl);
+}
+.is-sky .topbar,
+.is-sky .bottom,
+.is-sky .panel,
+.is-sky .bubble {
+  visibility: hidden;
+}
+.is-sky #scene {
+  cursor: grab;
+}

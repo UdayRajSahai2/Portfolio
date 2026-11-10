@@ -1,18 +1,32 @@
 // ─────────────────────────────────────────────────────────────
-// Everything you'd want to edit lives in this file.
-// Placeholder text is marked with TODO. Swap it for your own.
-// A project without a `url` shows as "Link coming soon".
+// Every word, link and project on the site lives in this file.
+// Rules (portfolio-spec.md CONTENT-01, CONTENT-02):
+//   - never invent a fact, number, quote or title
+//   - a list left empty does not render
+//   - a project without a `url` shows as "Link coming soon"
 // ─────────────────────────────────────────────────────────────
 
 export const profile = {
   name: 'Uday Raj Sahai',
-  tagline: 'Full stack developer and chess player. I build for the web with React, Next.js, Node and .NET.',
+  firstName: 'Uday',
+  role: 'Full stack developer',
+  // the intro screen: a headline, one sentence and the door
+  hello: {
+    headline: 'Hi, I’m Uday.',
+    sentence: 'I build for the web. Come in and see what else I’m into.',
+    enter: 'Enter',
+    loading: 'Setting up the room',
+    ready: 'The door is open when you are',
+    bubble: 'Hello!',
+    sign: 'Uday’s room', // over the door
+    mat: 'hello', // on the doormat
+  },
   intro:
-    'Full stack developer with 2+ years across .NET (C#, ASP.NET Core) and the MERN stack. I like building scalable web apps, clean REST and GraphQL APIs, and tools I actually want to use, like Caissa for my own chess games.',
+    'I’m a full stack developer. Away from code I lift weights, read, and watch a lot of films, TV series and anime. I’m part of a book club, and I keep coming back to philosophy, psychology and astronomy, because I want to understand people, the mind and the universe. I learn by experimenting, and I’m always after something new: a technology, an idea, or just a good story.',
   now: [
     'Junior Frontend Developer at CivicDataLab, working with Next.js and GraphQL',
     'Building Caissa, a free game reviewer for Chess.com players',
-    'Learning three.js by making this room',
+    'Learning three.js by building this room',
   ],
   experience: [
     { role: 'Junior Frontend Developer', org: 'CivicDataLab', when: 'Aug 2025 to now' },
@@ -23,6 +37,33 @@ export const profile = {
   ],
 };
 
+// ── the character ────────────────────────────────────────────
+export const avatar = {
+  skin: '#C68B62',
+  hair: '#1C1714',
+  hairStyle: 'short', // 'short' | 'curly' | 'long' | 'bun' | 'buzz' | 'spiky'
+  facialHair: 'none', // 'none' | 'stubble' | 'beard'
+  glasses: false,
+  shirt: '#3D6FD1',
+  shirtPrint: 'U', // a letter on the chest; '' for none
+  printColor: '#F4E7B0',
+  pants: '#2B3040',
+  shoes: '#F4F0E4',
+  eyes: '#1A1A22',
+  eyeShine: '#F7F4EA',
+  mouth: '#5A2E2E',
+  // after walking in
+  welcome: 'Make yourself at home. Click anything.',
+  // clicking the character: he says these in turn, then About opens
+  introLines: [
+    'Hi, I’m Uday Raj Sahai.',
+    'I’m a full stack developer.',
+    'Off the clock I lift, read, and binge films, series and anime.',
+    'And I can talk philosophy, psychology or stars all night.',
+  ],
+  walkHint: 'Click the floor to walk, or click anything that catches your eye. Drag to look around.',
+};
+
 // ── the monitor in the room ──────────────────────────────────
 // Language split of public GitHub code (bytes, all repos), github.com/UdayRajSahai2.
 // C# and GraphQL come from work at Hubbell and CivicDataLab, which isn't public.
@@ -30,7 +71,7 @@ export const languages = [
   { name: 'JavaScript', pct: 39.5, color: '#F1E05A' },
   { name: 'TypeScript', pct: 34.3, color: '#3178C6' },
   { name: 'Python', pct: 19.6, color: '#3572A5' },
-  { name: 'CSS', pct: 6.3, color: '#8E6BD1' },
+  { name: 'CSS', pct: 6.3, color: '#663399' },
   { name: 'Other', pct: 0.3, color: '#8B8FA8' },
 ];
 
@@ -120,29 +161,17 @@ export const monitorFiles = [
   },
 ];
 
-// ── the character that walks around the room ──────────────────
-// TODO: set these so the character looks like you.
-export const avatar = {
-  skin: '#C68B62',
-  hair: '#1C1714',
-  hairStyle: 'short', // 'short' | 'curly' | 'long' | 'bun' | 'buzz' | 'spiky'
-  facialHair: 'none', // 'none' | 'stubble' | 'beard'
-  glasses: false,
-  shirt: '#2F4858',
-  shirtPrint: '♞', // a symbol printed on the chest
-  printColor: '#E9C46A',
-  pants: '#2E3350',
-  shoes: '#F1EADC',
-  greeting: "Hi, I'm Uday. Click anything and I'll walk you over.",
-  // things the character says when you click on it
-  pokes: ['Hey there!', 'Want a game of chess?', 'Try the record player.', 'Click the floor and I’ll walk there.'],
+// `short` is the dock label on small screens; `label` is the full name.
+export const about = {
+  label: 'About me',
+  short: 'About',
 };
 
 export const contact = {
-  label: 'Contact',
+  label: 'Say hello',
+  short: 'Contact',
   say: 'Drop me a line!',
-  accent: '#C3A6FF',
-  blurb: "The envelope on the desk is for you. I'm open to full stack and frontend roles, freelance work, or a game of chess.",
+  blurb: 'The envelope on the desk is for you. I’m open to full stack and frontend roles, freelance work, or a good conversation about any of the things in this room.',
   email: 'udayrajsahai@gmail.com',
   links: [
     { label: 'GitHub', url: 'https://github.com/UdayRajSahai2' },
@@ -150,48 +179,29 @@ export const contact = {
   ],
 };
 
-export const about = {
-  label: 'About',
-  say: "That's me in a nutshell.",
-  accent: '#FFB547',
-};
-
-// Each interest maps to an object in the room by `id`:
-//   chess → chessboard, code → monitor, music → turntable, reading → bookshelf.
-// You can add a new id here too. It shows up in the dock and opens a panel,
-// even before it has its own object in src/scene/room.js.
+// Each interest maps to a zone in the room by `id` (see scene/room.js).
+//   points:     short facts, shown as a list
+//   favourites: TODO fill in your own titles; an empty list does not render
+//   projects:   things you built
 export const interests = [
-  {
-    id: 'chess',
-    label: 'Chess',
-    say: 'Fancy a game?',
-    accent: '#E9C46A',
-    blurb: 'The game I keep coming back to. So I built a tool to show me where my own games go wrong.',
-    tryIt: 'Click any piece to make it move.',
-    projects: [
-      {
-        name: 'Caissa',
-        description:
-          'Free, open-source game review for Chess.com players. Enter a username and get a blunder heatmap across your whole library, a weakness report, full move-by-move review, and puzzles built from your own mistakes.',
-        url: 'https://github.com/UdayRajSahai2/Caissa',
-        tags: ['Next.js 15', 'TypeScript', 'FastAPI', 'Python'],
-      },
-    ],
-  },
   {
     id: 'code',
     label: 'Code',
-    say: "Here's what I'm building.",
-    accent: '#7FD1B9',
+    say: 'Here’s what I’m building.',
     blurb: 'Full stack across .NET and the MERN stack, now mostly Next.js and GraphQL at work.',
     tryIt: 'Click the screen to switch to the next file.',
     showLanguages: true,
     stack: ['React', 'Next.js', 'Node.js', 'Express', 'C#', '.NET Core', 'GraphQL', 'MongoDB', 'MySQL', 'SQL Server', 'Azure', 'AWS'],
     projects: [
       {
+        name: 'Caissa',
+        description: 'Free, open-source game review for Chess.com players: a blunder heatmap across your whole library, a weakness report, and puzzles built from your own mistakes.',
+        url: 'https://github.com/UdayRajSahai2/Caissa',
+        tags: ['Next.js 15', 'TypeScript', 'FastAPI', 'Python'],
+      },
+      {
         name: 'Blogging platform',
-        description:
-          'A full blogging site with a rich editor, Google sign-in, nested comments, notifications and a dashboard for drafts and analytics. JWT auth, deployed on AWS.',
+        description: 'A full blogging site with a rich editor, Google sign-in, nested comments, notifications and a dashboard for drafts and analytics. JWT auth, deployed on AWS.',
         url: 'https://github.com/UdayRajSahai2/Blogging-Website',
         tags: ['MERN', 'JWT', 'Firebase', 'AWS'],
       },
@@ -203,8 +213,7 @@ export const interests = [
       },
       {
         name: 'Warehouse MVP',
-        description:
-          'Maps SKUs, tracks inventory, sales and returns straight from uploaded CSVs, with a dashboard and an AI assistant you can ask questions in plain English.',
+        description: 'Maps SKUs and tracks inventory, sales and returns straight from uploaded CSVs, with a dashboard and an assistant you can ask questions in plain English.',
         url: 'https://github.com/UdayRajSahai2/WareHouse-MVP',
         tags: ['Python', 'Pandas', 'Streamlit'],
       },
@@ -216,42 +225,106 @@ export const interests = [
       },
       {
         name: 'This room',
-        description: 'This 3D portfolio, built with three.js and GSAP. Every object is drawn in code.',
+        description: 'This portfolio, built with three.js and GSAP. Every object is drawn in code.',
         url: '',
         tags: ['three.js', 'WebGL'],
       },
     ],
   },
   {
-    id: 'music',
-    label: 'Music',
-    say: 'Let me put a record on.',
-    accent: '#FF8FA3',
-    blurb: 'Something is always playing while I work. Click the record to hear a loop.', // TODO
-    tryIt: 'Click the record to start or stop it.',
-    projects: [
-      {
-        name: 'Playlist',
-        description: 'Placeholder for a playlist, a music app, or anything audio you have made.', // TODO
-        url: '',
-        tags: ['Audio'],
-      },
-    ],
+    id: 'books',
+    label: 'Books',
+    say: 'This shelf is where I think.',
+    blurb: 'I read to understand people, the mind and the universe. Philosophy and psychology fill most of this shelf.',
+    tryIt: 'Watch me take a book to the chair. Click any other book to pull it out.',
+    // what he is reading now: the open book in his hands shows the title and author
+    reading: {
+      title: 'Tuesdays with Morrie',
+      by: 'Mitch Albom',
+      note: 'I’m reading this right now and it is so heartwarming. Morrie is learning how to die well, and Mitch, his old student, is learning from him how to live. It is such a beautiful book.',
+    },
+    points: ['I’m part of a book club', 'Philosophy: how to think and how to live', 'Psychology: why people do what they do'],
+    favourites: [], // TODO: add titles you love, e.g. { title: '', by: '' }
   },
   {
-    id: 'reading',
-    label: 'Books',
-    say: "Here's what I'm reading.",
-    accent: '#9DB8FF',
-    blurb: "The shelf of things I've read and want to read next.", // TODO
-    tryIt: 'Click a book to pull it off the shelf.',
+    id: 'screen',
+    label: 'Films and anime',
+    short: 'Films',
+    say: 'Pick a channel.',
+    blurb: 'I’m a movie buff. Films, TV series and anime, mostly for a good story told well.',
+    tryIt: 'Click the TV and I’ll change the channel.',
+    // the TV's channels: kind picks the picture (anime, series, film), label sits over the title
+    channels: [
+      { kind: 'anime', label: 'Anime', title: 'One Piece' },
+      { kind: 'series', label: 'TV series', title: 'Breaking Bad' },
+      { kind: 'film', label: 'Film', title: 'Interstellar' },
+    ],
+    points: ['Anime: One Piece', 'TV series: Breaking Bad', 'Film: Interstellar'],
+    favourites: [], // TODO: add more favourites, e.g. { title: '', by: '' }
+  },
+  {
+    id: 'gym',
+    label: 'Gym',
+    say: 'Spot me?',
+    blurb: 'Lifting is the part of the day with no screen. It keeps the rest of the day honest.',
+    tryIt: 'I’m mid-set. Click the barbell to hear it.',
+    points: ['Weight training'],
+  },
+  {
+    id: 'stars',
+    label: 'Stars',
+    say: 'Look up.',
+    blurb: 'Astronomy is the biggest question I know: what is out there, and how did any of it begin.',
+    tryIt: 'Click the telescope, or the button below, to look through it.',
+    points: ['Astronomy'],
+    sky: {
+      open: 'Look through the telescope',
+      title: 'Through the telescope',
+      help: 'Drag to look around. Arrow keys work too.',
+      start: 'Find Orion, then look for the others',
+      close: 'Back to the room',
+    },
+  },
+  {
+    id: 'chess',
+    label: 'Chess',
+    say: 'Fancy a game?',
+    blurb: 'A game I keep coming back to. I built a tool that shows me where my own games go wrong.',
+    tryIt: 'You’re white. Click one of your pieces, then a marked square, and I’ll answer.',
+    // what he says during a game
+    game: {
+      check: 'Check.',
+      iWin: 'Checkmate. Good game!',
+      youWin: 'You got me. Good game!',
+      draw: 'Stalemate. A draw, then.',
+    },
     projects: [
       {
-        name: 'Reading list',
-        description: 'Placeholder for a reading tracker, notes, or book reviews.', // TODO
-        url: '',
-        tags: ['Notes'],
+        name: 'Caissa',
+        description: 'Enter a Chess.com username and get a blunder heatmap across your whole library, a weakness report, move-by-move review and puzzles from your own mistakes.',
+        url: 'https://github.com/UdayRajSahai2/Caissa',
+        tags: ['Next.js 15', 'TypeScript', 'FastAPI', 'Python'],
       },
     ],
   },
 ];
+
+// ── interface copy: panel headings and control labels ──────────
+export const uiCopy = {
+  built: 'Things I built',
+  builtWith: 'Built with',
+  openProject: 'Open on GitHub',
+  soon: 'Link coming soon',
+  languages: 'Languages on my GitHub',
+  stack: 'What I work with',
+  favourites: 'Favourites',
+  reading: 'Reading now',
+  by: 'by',
+  now: 'Right now',
+  been: 'Where I’ve been',
+  walkTo: 'Walk me to',
+  soundOn: 'Sound on',
+  soundOff: 'Sound off',
+  lamp: 'Desk lamp',
+  me: 'That’s me',
+};

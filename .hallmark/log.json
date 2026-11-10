@@ -1,0 +1,24 @@
+[
+ {
+  "shape": "app screen",
+  "theme": "hum",
+  "scope": "app",
+  "axes": "light/rounded-sans/chromatic-yellow",
+  "hero": "door: copy card left, scene shifted right",
+  "nav": "top row wordmark and sound, bottom dock",
+  "footer": "none",
+  "imagery": "3D room built from primitives",
+  "photos": [],
+  "entry": "door, character waves, Enter",
+  "signature": "the character waves at his front door, opens it and walks you into a full-width room",
+  "sections": [
+   "intro door",
+   "room",
+   "panel"
+  ],
+  "waived": [],
+  "prompt": "portfolio room redesign: full width, character and door, many interests, Hum colours",
+  "date": "2026-11-10",
+  "mode": "build"
+ }
+]
