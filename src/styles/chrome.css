@@ -1,0 +1,211 @@
+/* The room's chrome: the top row (name, sound) and the bottom column (hint, dock). */
+
+.topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: max(var(--space-md), env(safe-area-inset-top)) var(--gutter) 0;
+  pointer-events: none;
+  transition: opacity var(--dur-long) var(--ease-snap);
+}
+.topbar > * {
+  pointer-events: auto;
+}
+.wordmark {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: var(--text-xl);
+  letter-spacing: var(--tracking-display);
+}
+.sound {
+  flex: none;
+}
+.sound-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: var(--space-3xs);
+  height: 12px;
+}
+.sound-bars i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--color-mint-deep);
+  transform-origin: bottom;
+  animation: bar 1s ease-in-out infinite;
+}
+.sound-bars i:nth-child(1) { animation-delay: -0.2s; }
+.sound-bars i:nth-child(2) { animation-delay: -0.5s; }
+.sound-bars i:nth-child(3) { animation-delay: -0.8s; }
+.sound.is-off .sound-bars i {
+  animation: none;
+  transform: scaleY(0.2);
+  background: var(--color-muted);
+}
+@keyframes bar {
+  50% { transform: scaleY(0.35); }
+}
+
+/* ── bottom: hint above the dock, one column ────────────── */
+.bottom {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0 var(--gutter) max(var(--space-md), env(safe-area-inset-bottom));
+  pointer-events: none;
+  transition: opacity var(--dur-long) var(--ease-snap), transform var(--dur-long) var(--ease-snap);
+}
+.bottom > * {
+  pointer-events: auto;
+}
+.hint {
+  max-width: 100%;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-input);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  color: var(--color-ink-2);
+  font-size: var(--text-sm);
+  text-align: center;
+  transition: opacity var(--dur-long) var(--ease-snap);
+}
+.hint.gone,
+.is-focused .hint {
+  opacity: 0;
+  pointer-events: none;
+}
+.dock {
+  display: flex;
+  gap: var(--space-2xs);
+  max-width: 100%;
+  padding: var(--space-xs);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+.dock::-webkit-scrollbar {
+  display: none;
+}
+.dock-item {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-ink-2);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transition: background-color var(--dur-micro) var(--ease-snap), color var(--dur-micro) var(--ease-snap);
+}
+.dock-short {
+  display: none;
+}
+.dock-item:hover {
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+}
+.dock-item[aria-current='true'] {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.dock-item.is-pending {
+  background: color-mix(in oklab, var(--color-accent) 55%, transparent);
+  color: var(--color-ink);
+}
+
+.is-intro .topbar,
+.is-intro .bottom {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* a panel is open: the dock centres beside the side panel where there is room... */
+@media (min-width: 1200px) and (min-aspect-ratio: 1/1) {
+  .is-focused .bottom {
+    padding-right: calc(var(--panel-w) + var(--gutter));
+  }
+}
+/* ...and steps aside everywhere else; the panel has its own way back */
+@media (max-width: 1199px), (max-aspect-ratio: 1/1) {
+  .is-focused .bottom {
+    opacity: 0;
+    transform: translateY(110%);
+    pointer-events: none;
+  }
+  .is-focused .bottom > * {
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 720px), (max-aspect-ratio: 1/1) {
+  .wordmark {
+    font-size: var(--text-md);
+  }
+}
+
+/* tablets and small laptops: short labels keep the dock on one row */
+@media (max-width: 1080px) {
+  .dock-full {
+    display: none;
+  }
+  .dock-short {
+    display: inline;
+  }
+}
+
+/* phones: all eight sections visible at once, four across, two rows */
+@media (max-width: 560px) {
+  .dock {
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .dock-item {
+    min-height: 44px;
+    padding: 0 var(--space-2xs);
+    border-radius: var(--radius-input);
+  }
+}
+
+@media (max-width: 420px) {
+  .sound-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .hint {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .hint {
+    display: none;
+  }
+}

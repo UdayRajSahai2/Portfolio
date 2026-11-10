@@ -53,7 +53,7 @@ function tone({ freq = 440, dur = 0.08, type = 'sine', vol = 0.05, slideTo = nul
   o.stop(t + dur + 0.05);
 }
 
-// ── lo-fi loop for the turntable ─────────────────────────────
+// ── lo-fi loop for the TV corner ─────────────────────────────
 const CHORDS = [
   [220.0, 261.63, 329.63, 392.0], // Am7
   [174.61, 220.0, 261.63, 329.63], // Fmaj7

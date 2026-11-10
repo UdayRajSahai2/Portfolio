@@ -1,0 +1,72 @@
+/* The intro: the name, one sentence and the door, beside or below the scene. */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-raised);
+  display: grid;
+  align-items: center;
+  width: 100%;
+  max-width: var(--container);
+  margin-inline: auto;
+  padding: var(--space-xl) var(--gutter);
+  pointer-events: none;
+}
+.intro-copy {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-md);
+  max-width: 30rem;
+  padding: var(--space-xl);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
+  box-shadow: var(--shadow-card);
+  pointer-events: auto;
+  transition: opacity var(--dur-long) var(--ease-snap), transform var(--dur-long) var(--ease-snap);
+}
+.intro-title {
+  font-size: var(--text-hello);
+  line-height: 1.02;
+  max-width: 12ch;
+}
+.intro-sentence {
+  font-size: var(--text-lg);
+  line-height: 1.45;
+  color: var(--color-ink-2);
+  max-width: 30ch;
+}
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+}
+.intro-status {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+.is-entering .intro-copy {
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+}
+
+@media (max-width: 899px), (max-aspect-ratio: 11/10) {
+  .intro {
+    align-items: end;
+    padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
+  }
+  .intro-copy {
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+    padding: var(--space-lg);
+  }
+  .intro-title {
+    font-size: var(--text-hello-s);
+  }
+  .intro-sentence {
+    font-size: var(--text-md);
+  }
+}
