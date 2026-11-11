@@ -38,7 +38,7 @@ const sign = canvasTex(512, 160, (ctx, w, h) => {
 });
 const signMat = new THREE.MeshStandardMaterial({ map: sign.tex, transparent: true, roughness: 0.9 });
 fadeMats.push(signMat);
-facade.add(at(new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.69), signMat), 0, DOOR_H + 0.85, FRONT_Z + 0.16));
+facade.add(at(new THREE.Mesh(new THREE.PlaneGeometry(2.2, 0.69), signMat), 0, DOOR_H + 0.85, FRONT_Z + 0.19)); // 4 cm off the wall
 facade.traverse((o) => (o.userData.wall = true));
 
 // the door leaf swings on a hinge on its left edge

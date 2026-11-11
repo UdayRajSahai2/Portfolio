@@ -21,7 +21,9 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
 
   // ── renderer and scene ──────────────────────────────────
   const canvas = document.getElementById('scene');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  // logarithmic depth: surfaces that lie close together (the rug, the doormat, screens,
+  // posters) stay apart at any distance, even on phones with little depth precision (ROOM-08)
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
@@ -83,6 +85,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   let phase = 'intro';
   let focusedId = null;
   let roomCamPos = null;
+  let roomTarget = null; // what the room view looked at before a close-up
   let homeTarget = homeView().target;
 
   const start = introView(entrance.door.z);
@@ -90,17 +93,29 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   const look = start.target.clone(); // what the camera looks at while a tween drives it
 
   const controls = new OrbitControls(camera, canvas);
-  Object.assign(controls, {
-    enableDamping: true,
-    dampingFactor: 0.07,
-    enablePan: false,
-    minDistance: 7,
-    maxDistance: 32,
-    minPolarAngle: 0.95,
-    maxPolarAngle: 1.42, // the azimuth is free: the view goes all the way round
-    rotateSpeed: 0.5,
-    enabled: false,
-  });
+  Object.assign(controls, { enableDamping: true, dampingFactor: 0.07, enablePan: false, rotateSpeed: 0.5, zoomSpeed: 0.8, enabled: false });
+
+  // In the room the view goes all the way round (ROOM-04). In a close-up it stays on
+  // what the close-up frames: pinch or scroll to zoom, drag to look a little either side (UI-07).
+  function orbitRoom() {
+    Object.assign(controls, { minDistance: 7, maxDistance: 32, minPolarAngle: 0.95, maxPolarAngle: 1.42, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity });
+    controls.target.copy(look);
+    controls.enabled = true;
+  }
+  const around = new THREE.Spherical();
+  function orbitCloseUp() {
+    around.setFromVector3(camera.position.clone().sub(look));
+    Object.assign(controls, {
+      minDistance: around.radius * 0.4,
+      maxDistance: around.radius * 1.2,
+      minPolarAngle: Math.max(0.2, around.phi - 0.35),
+      maxPolarAngle: Math.min(1.45, around.phi + 0.2),
+      minAzimuthAngle: around.theta - 0.45,
+      maxAzimuthAngle: around.theta + 0.45,
+    });
+    controls.target.copy(look);
+    controls.enabled = true;
+  }
 
   // the scene slides aside for the intro text or an open panel
   const viewShift = { x: 0, y: 0 };
@@ -173,7 +188,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     if (onFreeFloor) hoverRing.position.set(next.point.x, hoverRing.position.y, next.point.z);
 
     const clickable = next && nextId !== 'floor' && (nextId !== focusedId || hotspots[nextId]?.interact);
-    canvas.style.cursor = clickable ? 'pointer' : phase !== 'room' || focusedId ? 'default' : nextId === 'floor' ? 'crosshair' : 'grab';
+    canvas.style.cursor = clickable ? 'pointer' : phase !== 'room' ? 'default' : nextId === 'floor' && !focusedId ? 'crosshair' : 'grab';
     // in a close-up, a part with its own name (a book on the shelf) shows that name
     const named = focusedId && next?.object?.userData.label;
     ui.tip(phase === 'room' ? named || (glowable(nextId) ? labelOf(nextId) : null) : null, clientX, clientY);
@@ -182,9 +197,17 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   const setPointer = (e) => pointer.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
   const DRAG = 6; // px a press may move and still count as a click
   let down = null;
+  const touching = new Set(); // pointers on the canvas now; two or more is a pinch, never a click
+  let pinched = false;
 
   canvas.addEventListener('pointerdown', (e) => {
+    touching.add(e.pointerId);
+    if (touching.size > 1) pinched = true;
     down = { x: e.clientX, y: e.clientY };
+  });
+  canvas.addEventListener('pointercancel', (e) => {
+    touching.delete(e.pointerId);
+    down = null;
   });
   canvas.addEventListener('pointermove', (e) => {
     if (skyView.isOpen) return;
@@ -197,10 +220,13 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   });
   canvas.addEventListener('pointerleave', () => setHovered(null));
   canvas.addEventListener('pointerup', (e) => {
+    touching.delete(e.pointerId);
+    const wasPinch = pinched;
+    if (!touching.size) pinched = false;
     if (!down) return;
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
     down = null;
-    if (moved > DRAG || skyView.isOpen) return;
+    if (wasPinch || moved > DRAG || skyView.isOpen) return;
     setPointer(e);
     onClick(pick());
   });
@@ -284,14 +310,19 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     ui.open(id);
     sound.open();
     if (hovered) setHovered(null);
-    if (controls.enabled) roomCamPos = camera.position.clone();
+    if (controls.enabled && !focusedId) {
+      roomCamPos = camera.position.clone();
+      roomTarget = controls.target.clone();
+    }
     controls.enabled = false;
     focusedId = id;
     updateViewShift();
+    // once the camera has arrived, the close-up can be zoomed and turned a little
+    const settle = () => focusedId === id && orbitCloseUp();
     if (id === 'about') {
       const v = viewOfMe();
       me.faceTowards(v.pos.x, v.pos.z);
-      flyTo(v.pos, v.target, { duration: 1.0 });
+      flyTo(v.pos, v.target, { duration: 1.0, onComplete: settle });
       return;
     }
     const h = hotspots[id];
@@ -299,7 +330,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     const target = new THREE.Vector3(...h.view.target);
     const pos = new THREE.Vector3(...h.view.pos);
     clampToRoom(pos.sub(target).multiplyScalar(fitFactor()).add(target));
-    flyTo(pos, target, { duration: 1.1 });
+    flyTo(pos, target, { duration: 1.1, onComplete: settle });
     h.onFocus?.();
     const mine = walk;
     activities.start(id, () => mine === walk);
@@ -308,16 +339,12 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   function leaveFocus() {
     walk++; // a walk to a seat still under way must not sit him down
     skyView.close();
+    controls.enabled = false;
     activities.leave(focusedId);
     hotspots[focusedId]?.onBlur?.();
     focusedId = null;
     updateViewShift();
-    flyTo(roomCamPos || homeView().pos, controls.target, {
-      duration: 1.0,
-      onComplete: () => {
-        controls.enabled = true;
-      },
-    });
+    flyTo(roomCamPos || homeView().pos, roomTarget || homeTarget, { duration: 1.0, onComplete: orbitRoom });
   }
 
   function goTo(id) {
@@ -371,6 +398,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   }
 
   // ── the telescope ───────────────────────────────────────
+  let skyPaused = false;
   const skyView = createSkyView({
     ui,
     sound,
@@ -384,7 +412,16 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
       line: token('--color-accent'),
       label: token('--color-accent'),
     },
-    onOpen: () => hovered && setHovered(null),
+    // the sky shares the canvas, so the room's controls rest while it is open
+    onOpen: () => {
+      if (hovered) setHovered(null);
+      skyPaused = controls.enabled;
+      controls.enabled = false;
+    },
+    onClose: () => {
+      if (skyPaused && focusedId) controls.enabled = true;
+      skyPaused = false;
+    },
   });
 
   // ── the door ────────────────────────────────────────────
@@ -396,8 +433,8 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   function finishEntry() {
     phase = 'room';
     ui.leaveIntro();
-    controls.target.copy(homeTarget);
-    controls.enabled = true;
+    look.copy(homeTarget);
+    orbitRoom();
   }
 
   function enterRoom() {
@@ -485,7 +522,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     activities.update(dt, t);
 
     if (controls.enabled) {
-      if (!down) driftTowardsCharacter(dt);
+      if (!down && !focusedId) driftTowardsCharacter(dt);
       controls.update();
       look.copy(controls.target);
     } else {

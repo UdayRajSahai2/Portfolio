@@ -56,6 +56,7 @@ PowerShell: run commands separately; do not use `&&`.
 - [ ] With the side panel open, the dock is never cut off
 - [ ] Frame rate on a mid phone stays smooth while idle in the room
 - [ ] Every close-up interaction works and resets on close
+- [ ] In a close-up, pinch (phone, with the sheet open) and the wheel zoom it; a pinch never selects anything; closing returns to the room view
 - [ ] Clicking the floor walks around furniture, never through it
 - [ ] Clicking a second zone while walking cancels the first
 - [ ] Clicking the character: intro lines, then About; a second click skips
