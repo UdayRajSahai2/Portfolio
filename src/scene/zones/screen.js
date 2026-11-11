@@ -12,7 +12,7 @@ export function buildScreen({ root, P, tickers, font, channels }) {
   const scr = new THREE.Mesh(new THREE.PlaneGeometry(3.1, 1.75), new THREE.MeshBasicMaterial({ map: tv.tex, toneMapped: false }));
   scr.rotation.y = -Math.PI / 2;
   scr.userData.noGlow = true;
-  at(scr, -0.056, 0, 0);
+  at(scr, -0.065, 0, 0); // 1.5 cm off the set, so the two never flicker
   g.add(scr);
   at(g, X1 - 0.1, 3.3, -0.6);
   root.add(g);
@@ -73,7 +73,7 @@ export function buildScreen({ root, P, tickers, font, channels }) {
     pg.add(at(box(0.06, 1.62, 1.18, P.paper), 0, 0, 0));
     const art = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.42), mat(P.paper, { map: t.tex, roughness: 0.9 }));
     art.rotation.y = -Math.PI / 2;
-    at(art, -0.035, 0, 0);
+    at(art, -0.045, 0, 0); // 1.5 cm off the board
     pg.add(art);
     at(pg, X1 - 0.04, 3.6, i === 0 ? 2.5 : -3.5);
     pg.traverse((o) => (o.userData.wall = true));

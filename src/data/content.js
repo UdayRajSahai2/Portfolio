@@ -13,7 +13,7 @@ export const profile = {
   // the intro screen: a headline, one sentence and the door
   hello: {
     headline: 'Hi, I’m Uday.',
-    sentence: 'I build for the web. Come in and see what else I’m into.',
+    sentence: 'I’m a software developer. Step inside to meet the rest of me.',
     enter: 'Enter',
     loading: 'Setting up the room',
     ready: 'The door is open when you are',
@@ -173,9 +173,10 @@ export const contact = {
   say: 'Drop me a line!',
   blurb: 'The envelope on the desk is for you. I’m open to full stack and frontend roles, freelance work, or a good conversation about any of the things in this room.',
   email: 'udayrajsahai@gmail.com',
+  // `icon` names a logo in ui/icons.js
   links: [
-    { label: 'GitHub', url: 'https://github.com/UdayRajSahai2' },
-    { label: 'LinkedIn', url: 'https://www.linkedin.com/in/udayrajsahai/' },
+    { label: 'GitHub', url: 'https://github.com/UdayRajSahai2', icon: 'github' },
+    { label: 'LinkedIn', url: 'https://www.linkedin.com/in/udayrajsahai/', icon: 'linkedin' },
   ],
 };
 
@@ -191,6 +192,9 @@ export const interests = [
     blurb: 'Full stack across .NET and the MERN stack, now mostly Next.js and GraphQL at work.',
     tryIt: 'Click the screen to switch to the next file.',
     showLanguages: true,
+    // the panel shows the first few projects, then a link to every repository (CONTENT-04)
+    projectLimit: 5,
+    allProjects: 'https://github.com/UdayRajSahai2?tab=repositories',
     stack: ['React', 'Next.js', 'Node.js', 'Express', 'C#', '.NET Core', 'GraphQL', 'MongoDB', 'MySQL', 'SQL Server', 'Azure', 'AWS'],
     projects: [
       {
@@ -235,14 +239,39 @@ export const interests = [
     id: 'books',
     label: 'Books',
     say: 'This shelf is where I think.',
-    blurb: 'I read to understand people, the mind and the universe. Philosophy and psychology fill most of this shelf.',
-    tryIt: 'Watch me take a book to the chair. Click any other book to pull it out.',
+    blurb: 'I read all kinds of books, from retold myths and murder mysteries to psychology, physics and software design.',
+    tryIt: 'Watch me take a book to the chair. Click any book on the shelf and I’ll read that one instead.',
     // what he is reading now: the open book in his hands shows the title and author
     reading: {
       title: 'Tuesdays with Morrie',
       by: 'Mitch Albom',
+      about: 'Mitch visits his dying old teacher every Tuesday, and learns from him how to live.',
       note: 'I’m reading this right now and it is so heartwarming. Morrie is learning how to die well, and Mitch, his old student, is learning from him how to live. It is such a beautiful book.',
     },
+    // the books on his shelf (ACT-08); `about` is the one line he says when he reads it.
+    // An empty `about` makes him name the book instead.
+    shelf: [
+      { title: 'The Palace of Illusions', by: 'Chitra Banerjee Divakaruni', about: 'The Mahabharata retold by Draupadi, in her own voice.' },
+      { title: 'In One Brief Moment, All Eternity', by: 'Elif Shafak', about: '' }, // TODO: Uday, one line on what it is about
+      { title: 'The Righteous Mind', by: 'Jonathan Haidt', about: 'Why good people are divided by politics and religion: moral intuitions come first, and reasoning follows.' },
+      { title: 'MicroStimuli', by: 'Biju Dominic', about: 'Behavioural science: the small cues that quietly shape the choices people make.' },
+      { title: 'Ajaya', by: 'Anand Neelakantan', about: 'The Mahabharata told from the Kauravas’ side, with Duryodhana as its hero.' },
+      { title: 'And Then There Were None', by: 'Agatha Christie', about: 'Ten strangers on an island are killed one by one, and the killer is one of them.' },
+      { title: 'A Little History of the World', by: 'E. H. Gombrich', about: 'The whole story of the world, from the Stone Age to the twentieth century, told for young readers.' },
+      { title: 'The Murder of Roger Ackroyd', by: 'Agatha Christie', about: 'Poirot solves a murder in a quiet English village, with one of the most famous twists in crime fiction.' },
+      { title: 'Designing Data-Intensive Applications', by: 'Martin Kleppmann', about: 'How databases and distributed systems really work, and the trade-offs behind reliable, scalable data systems.' },
+      { title: 'Her First Mistake', by: 'Kendra Elliot', about: '' }, // TODO: Uday, one line on what it is about
+      { title: 'Atomic Habits', by: 'James Clear', about: 'Tiny habits, repeated every day, compound into remarkable change.' },
+      { title: 'The Silent Patient', by: 'Alex Michaelides', about: 'A painter shoots her husband and never speaks again, and a psychotherapist sets out to make her talk.' },
+      { title: 'The Krishna Key', by: 'Ashwin Sanghi', about: 'A thriller that hunts for the historical Krishna through myth, archaeology and a string of murders.' },
+      { title: 'The Alchemist', by: 'Paulo Coelho', about: 'A shepherd boy follows a dream of treasure across the desert, and learns to listen to his heart.' },
+      { title: 'The Almanack of Naval Ravikant', by: 'Eric Jorgenson', about: 'Naval Ravikant’s thinking on building wealth and being happy, gathered in one place.' },
+      { title: 'Talk Like TED', by: 'Carmine Gallo', about: 'What the best TED speakers do, distilled into nine secrets of public speaking.' },
+      { title: 'Astrophysics for People in a Hurry', by: 'Neil deGrasse Tyson', about: 'The universe, from the Big Bang to dark matter, in short chapters.' },
+      { title: 'For the Love of Physics', by: 'Walter Lewin', about: 'MIT’s much loved physics teacher on the wonder hiding in everyday things, from rainbows to the stars.' },
+      { title: 'Deep Work', by: 'Cal Newport', about: 'Why focused work without distraction is rare and valuable, and how to train yourself to do it.' },
+      { title: 'The Discovery of India', by: 'Jawaharlal Nehru', about: 'Nehru’s history of India, from its ancient past to his own time, written while he was in prison.' },
+    ],
     points: ['I’m part of a book club', 'Philosophy: how to think and how to live', 'Psychology: why people do what they do'],
     favourites: [], // TODO: add titles you love, e.g. { title: '', by: '' }
   },
@@ -314,17 +343,20 @@ export const uiCopy = {
   built: 'Things I built',
   builtWith: 'Built with',
   openProject: 'Open on GitHub',
+  allProjects: 'View all repositories',
   soon: 'Link coming soon',
   languages: 'Languages on my GitHub',
   stack: 'What I work with',
   favourites: 'Favourites',
   reading: 'Reading now',
+  shelf: 'On my shelf',
   by: 'by',
   now: 'Right now',
   been: 'Where I’ve been',
   walkTo: 'Walk me to',
   soundOn: 'Sound on',
   soundOff: 'Sound off',
+  night: 'Night',
   lamp: 'Desk lamp',
   me: 'That’s me',
 };

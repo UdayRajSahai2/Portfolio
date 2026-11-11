@@ -86,7 +86,7 @@ export function buildChess({ root, P, D, game = {} }) {
       mk.visible = i < squares.length;
       if (!mk.visible) return;
       const { x, z } = squarePos(squares[i]);
-      mk.position.set(x, PIECE_Y + 0.008, z);
+      mk.position.set(x, PIECE_Y + 0.012, z);
     });
   }
 

@@ -203,7 +203,10 @@ a.project:hover {
 }
 
 .mail {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  max-width: 100%;
   margin: var(--space-md) 0 var(--space-lg);
   font-weight: 600;
   font-size: var(--text-xl);
@@ -211,6 +214,9 @@ a.project:hover {
   text-decoration-thickness: 2px;
   text-underline-offset: 5px;
   overflow-wrap: anywhere;
+}
+.mail span {
+  min-width: 0;
 }
 .links {
   display: grid;
@@ -222,6 +228,7 @@ a.project:hover {
 .links a {
   display: flex;
   align-items: center;
+  gap: var(--space-sm);
   min-height: 48px;
   padding: 0 var(--space-md);
   border-radius: var(--radius-input);
@@ -232,6 +239,25 @@ a.project:hover {
 }
 .links a:hover {
   background: var(--color-paper-3);
+}
+
+/* logos beside link text (CONTENT-05): text size, text colour */
+.logo {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+}
+
+/* the way from a few projects to all of them (CONTENT-04) */
+.all-projects {
+  margin-top: var(--space-md);
+}
+.all-projects a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  font-weight: 600;
 }
 
 /* ── reading now, panel actions ─────────────────────────── */

@@ -2,7 +2,8 @@
 
 .no-webgl #scene,
 .no-webgl .hint,
-.no-webgl #bubble {
+.no-webgl #bubble,
+.no-webgl #time {
   display: none;
 }
 .noscript {

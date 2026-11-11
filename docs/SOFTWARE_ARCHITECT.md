@@ -47,6 +47,7 @@ State owners:
 | Object animation state (door, TV channel, key presses, bar) | the zone module in `scene/zones/` |
 | Sky view open or closed | `ui/ui.js` (`skyOpen`); steering in `world/skyView.js` |
 | Sound on or off | `sound.js` (persisted in `localStorage`) |
+| Day or night | `world/world.js` (from the visitor's clock, toggled for the visit); `room.setNight` applies it |
 
 ---
 
@@ -63,16 +64,17 @@ export function build<Id>({ root, P, rand, tickers, D, ...what it needs }) {
     stand: { x, z, look: [x, z] },                 // where he stands on arrival, and what he faces
     view: { pos: [x, y, z], target: [x, y, z] },   // close-up camera (fitted to the free screen by framing.js)
     onFocus, onBlur,                               // optional
-    interact(object, { me, point, openSky, say }), // optional, close-up clicks (point: where it was hit)
+    interact(object, { me, point, openSky, say, again, showBook }), // optional, close-up clicks (point: where it was hit)
+    //   say(line, ms), again(onSeated): replay the activity from the stand point, showBook(book): "Reading now"
     activity: {                                    // optional, what he does here (spec ACT)
-      seat: { x, z, yaw, y }, pose, hold,
+      seat: { x, z, yaw, y }, pose, hold, held,    // held: what the prop shows (a book's title and author)
       prepare(next), release(), update(me, dt, t),
     },
   };
 }
 ```
 
-and its footprint goes into `obstacles` in `room.js`. The `<id>` matches an entry in `interests` in `content.js`. That is the whole extension surface. Do not add a registry, an event bus or a plugin system.
+and its footprint goes into `obstacles` in `room.js`. Something that changes between day and night pushes `(night, duration) => {}` onto `timeOfDay` in the build context, as per-frame work goes onto `tickers`. The `<id>` matches an entry in `interests` in `content.js`. That is the whole extension surface. Do not add a registry, an event bus or a plugin system.
 
 ---
 

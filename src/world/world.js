@@ -16,6 +16,7 @@ import { createSkyView } from './skyView.js';
 // `select`, `labelOf` and `lineFor` come from main.js, which owns the list of sections.
 export function createWorld({ ui, content, font, reduceMotion, select, labelOf, lineFor }) {
   const { profile, interests, avatar, monitorFiles, languages } = content;
+  const books = interests.find((i) => i.reading);
   const M = reduceMotion ? 0.01 : 1; // tween duration scale
 
   // ── renderer and scene ──────────────────────────────────
@@ -28,7 +29,8 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   renderer.toneMapping = THREE.NeutralToneMapping;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 200);
+  // a near plane of 0.3 (not 0.1) triples depth precision; no view comes closer than that
+  const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.3, 200);
 
   const room = buildRoom(scene, {
     monitorFiles,
@@ -36,6 +38,8 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     labels: { sign: profile.hello.sign, mat: profile.hello.mat },
     channels: interests.find((i) => i.channels)?.channels || [],
     game: interests.find((i) => i.game)?.game || {},
+    reading: books?.reading,
+    shelf: books?.shelf,
     font,
     reduceMotion,
   });
@@ -45,7 +49,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   const me = createCharacter(avatar, {
     reduceMotion,
     font,
-    book: interests.find((i) => i.reading)?.reading,
+    book: books?.reading,
     colors: { paper: token('--room-paper'), ink: token('--color-ink'), muted: token('--color-muted'), cover: token('--color-accent-2') },
   });
   me.group.userData.hotspot = 'me';
@@ -53,13 +57,19 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
 
   const activities = createActivities({ hotspots, me });
 
+  // ROOM-07: day or night by the visitor's clock; the Night toggle switches it for the visit
+  const hour = new Date().getHours();
+  let night = hour < 6 || hour >= 18;
+  room.setNight(night, false);
+  ui.syncTime(night);
+
   // rings on the floor: where you point, and where he is heading
   const ACCENT = token('--color-accent');
   const ringGeo = new THREE.RingGeometry(0.2, 0.28, 40);
   const makeRing = (opacity) => {
     const r = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity, depthWrite: false }));
     r.rotation.x = -Math.PI / 2;
-    r.position.y = 0.025;
+    r.position.y = 0.05; // clear of the rug, which lies just above the floor
     r.raycast = () => {};
     r.visible = false;
     scene.add(r);
@@ -87,9 +97,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     minDistance: 7,
     maxDistance: 32,
     minPolarAngle: 0.95,
-    maxPolarAngle: 1.42,
-    minAzimuthAngle: -0.6,
-    maxAzimuthAngle: 0.6,
+    maxPolarAngle: 1.42, // the azimuth is free: the view goes all the way round
     rotateSpeed: 0.5,
     enabled: false,
   });
@@ -166,7 +174,9 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
 
     const clickable = next && nextId !== 'floor' && (nextId !== focusedId || hotspots[nextId]?.interact);
     canvas.style.cursor = clickable ? 'pointer' : phase !== 'room' || focusedId ? 'default' : nextId === 'floor' ? 'crosshair' : 'grab';
-    ui.tip(glowable(nextId) && phase === 'room' ? labelOf(nextId) : null, clientX, clientY);
+    // in a close-up, a part with its own name (a book on the shelf) shows that name
+    const named = focusedId && next?.object?.userData.label;
+    ui.tip(phase === 'room' ? named || (glowable(nextId) ? labelOf(nextId) : null) : null, clientX, clientY);
   }
 
   const setPointer = (e) => pointer.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
@@ -210,7 +220,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     }
     if (hit.id === 'lamp') return lamp.toggle();
     if (focusedId) {
-      if (hit.id === focusedId) hotspots[hit.id]?.interact?.(hit.object, { me, point: hit.point, openSky: skyView.open, say: (line) => line && ui.say(line, 2400) });
+      if (hit.id === focusedId) hotspots[hit.id]?.interact?.(hit.object, closeUp(hit));
       return;
     }
     if (hit.id === 'me') return introduce();
@@ -219,6 +229,23 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
       return walkFree(hit.point);
     }
     select(hit.id);
+  }
+
+  // what a zone's close-up click may ask of the world
+  function closeUp(hit) {
+    const id = focusedId;
+    return {
+      me,
+      point: hit.point,
+      openSky: skyView.open,
+      say: (line, ms = 2400) => line && ui.say(line, ms),
+      // play the zone's activity again from the top; `onSeated` runs once he has sat down
+      again(onSeated) {
+        const mine = walk;
+        activities.again(id, () => mine === walk, onSeated);
+      },
+      showBook: (book) => ui.showReading(book),
+    };
   }
 
   // ── walking and close-ups ───────────────────────────────
@@ -466,6 +493,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     }
     if (destRing.visible) destRing.scale.setScalar(1 + Math.sin(t * 6) * 0.12);
     applyViewShift();
+    room.faceWalls(camera.position);
     renderer.render(scene, camera);
 
     if (ui.bubbleVisible) {
@@ -489,6 +517,12 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     leaveFocus,
     action(name) {
       if (name === 'sky') skyView.open();
+      if (name === 'time') {
+        night = !night;
+        room.setNight(night);
+        ui.syncTime(night);
+        sound.toggle();
+      }
     },
   };
 }

@@ -34,9 +34,11 @@ The one action: open a project or get in touch.
 | ROOM-01 | The room fills the full width of the viewport at every size from 320 to 1920 px. No floating diorama in the middle of an empty background. |
 | ROOM-02 | The room has one zone per interest: **Code** (desk and monitor), **Chess** (table and board), **Books** (bookshelf and reading chair; covers the book club, philosophy and psychology), **Screen** (TV and sofa; films, TV series and anime), **Gym** (rack, bench, barbell, dumbbells), **Stars** (telescope at the window; astronomy) and **Contact** (envelope on the desk). |
 | ROOM-03 | Hovering a zone highlights it and shows its name. Clicking or tapping the object itself in the 3D scene (not only the dock) walks the character there, he says a short line, the camera moves in and the zone's panel opens. |
-| ROOM-04 | Clicking the floor walks the character to that spot around furniture. Dragging rotates the view within limits. |
+| ROOM-04 | Clicking the floor walks the character to that spot around furniture. Dragging rotates the view all the way round the room (the tilt stays limited); a wall between the camera and the room steps aside. |
 | ROOM-05 | Each zone has one small interaction in close-up: the monitor switches files, a chess piece hops, a book slides out, the TV changes channel, the barbell lifts, the window turns to night and shows the stars. |
 | ROOM-06 | The desk lamp toggles on and off. |
+| ROOM-07 | Day and night: the room opens in day from 06:00 to 18:00 on the visitor's clock and in night otherwise. At night the sky outside is dark, the window shows the night sky, moonlight replaces the sun and the room is lit warm from inside. A Night toggle in the top row switches between them for the visit. The page's paper cards look the same in both. Without WebGL the toggle is hidden. |
+| ROOM-08 | Nothing in the room flickers as the camera moves: surfaces that lie on others (rug, screens, posters, window, paper) sit far enough off them, or draw with a polygon offset. |
 
 ### Activities (the character does each interest)
 
@@ -46,6 +48,7 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | --- | --- |
 | ACT-01 | **Code:** he sits on the desk chair and types; his hands tap in time with the monitor. |
 | ACT-02 | **Books:** he pulls a book off the shelf, carries it to the reading chair, sits and reads. The open book shows the title and author of what he is reading now (*Tuesdays with Morrie*, Mitch Albom) and its pages turn. No text from the book itself is reproduced. |
+| ACT-08 | **His shelf:** the books listed in `shelf` in `content.js` stand on the shelf with their titles on the spines; filler books fill the gaps. In the Books close-up, hovering one names it. Clicking one makes him put his book back, take that one to the chair and read it, its cover the same colours as its spine; he says in one line what it is about, and "Reading now" in the panel shows it. Leaving the zone puts it back; the next visit starts with what he is reading now. The panel lists the shelf. |
 | ACT-03 | **Films and anime:** he sits on the sofa with a remote. Clicking the TV makes him press the remote and the channel changes. Channels: One Piece (anime), Breaking Bad (series), Interstellar (film), each drawn in the room's own style with its title as text. No official artwork. |
 | ACT-04 | **Gym:** he lies on the bench and presses the barbell; the bar follows his hands. |
 | ACT-05 | **Stars:** he walks to the telescope and leans to the eyepiece. |
@@ -83,11 +86,11 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 
 | ID | Requirement |
 | --- | --- |
-| UI-01 | A dock lists every section (About, the six interests, Contact) and works by keyboard. It opens the same panels as the room. At 720 px and narrower it is a 4 x 2 grid of short labels, with every section visible at once and no horizontal scrolling. |
+| UI-01 | A dock lists every section (About, the six interests, Contact) and works by keyboard. It opens the same panels as the room. At 720 px and narrower it is a 4 x 2 grid of short labels, with every section visible at once and no horizontal scrolling. At 560 px and narrower its buttons are 36 px tall, so the two rows sit close (above the 24 px WCAG 2.2 AA minimum). |
 | UI-02 | The panel is a side sheet on landscape screens 721 px and wider, and a bottom sheet on phones and any portrait screen (`SHEET_QUERY` in `ui.js`, the same media query in `style.css`). While it is open, the dock centres beside the side sheet at 1200 px and wider and steps aside below that. Escape and the close button both close it and return focus. |
 | UI-06 | Close-ups fit the part of the screen the panel leaves free: the camera steps back by how much the panel narrows the view, and never leaves the room. The activity stays in view at every size. |
 | UI-03 | Nothing overlaps at 320, 375, 414, 768, 1024, 1440 or 1920 px wide: the header (name and sound) is one row, and the hint sits above the dock in the same column. |
-| UI-04 | A sound toggle, remembered across visits. All sound is synthesised. |
+| UI-04 | A sound toggle, remembered across visits. All sound is synthesised. A Night toggle sits beside it (ROOM-07); on phones both show their icon only. |
 | UI-05 | Without WebGL the intro still shows and Enter opens the dock and panels without the room. With JavaScript off a short static profile with links is shown. |
 
 ### Content
@@ -97,6 +100,8 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | CONTENT-01 | Every word, link and project lives in `src/data/content.js`. |
 | CONTENT-02 | No invented facts: no metrics, testimonials, quotes, book or film titles that Uday did not provide. Empty lists do not render. |
 | CONTENT-03 | The About panel carries his introduction: full stack developer; lifts weights; reads; a film, TV and anime buff; in a book club; drawn to philosophy, psychology and astronomy; learns by experimenting. It also lists experience and links to each interest. |
+| CONTENT-04 | The Code panel shows at most five projects (`projectLimit`), then a "View all repositories" link with the GitHub logo to his GitHub repositories tab. |
+| CONTENT-05 | The Contact panel marks the email with the Gmail logo and each profile link with its own logo (GitHub, LinkedIn). Logos are inline SVG in the text colour (`currentColor`), never brand colours, and hidden from screen readers; the link text names the destination. |
 
 ### Quality
 

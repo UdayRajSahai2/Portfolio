@@ -5,7 +5,7 @@ import { mat, mesh, box, cyl, at, canvasTex } from '../build.js';
 import { ZB } from '../layout.js';
 
 // STARS: the window (day and night skies) and the telescope.
-export function buildStars({ root, P, rand, D }) {
+export function buildStars({ root, P, rand, D, timeOfDay }) {
   const WX = 4.7;
   const WY = 4.3;
   const WW = 2.8;
@@ -71,12 +71,14 @@ export function buildStars({ root, P, rand, D }) {
   });
 
   const win = new THREE.Group();
-  at(win, WX, WY, ZB + 0.02);
+  // the skies sit well off the wall and each other, and the overlays never write
+  // depth, so nothing flickers as the camera moves (ROOM-08)
+  at(win, WX, WY, ZB + 0.03);
   win.add(new THREE.Mesh(new THREE.PlaneGeometry(WW, WH), new THREE.MeshBasicMaterial({ map: daySky.tex, toneMapped: false })));
-  const nightMat = new THREE.MeshBasicMaterial({ map: nightSky.tex, toneMapped: false, transparent: true, opacity: 0 });
-  win.add(at(new THREE.Mesh(new THREE.PlaneGeometry(WW, WH), nightMat), 0, 0, 0.005));
-  const shootMat = new THREE.MeshBasicMaterial({ color: P.star, transparent: true, opacity: 0, toneMapped: false });
-  const shoot = at(new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.025), shootMat), 0, 0, 0.01);
+  const nightMat = new THREE.MeshBasicMaterial({ map: nightSky.tex, toneMapped: false, transparent: true, opacity: 0, depthWrite: false });
+  win.add(at(new THREE.Mesh(new THREE.PlaneGeometry(WW, WH), nightMat), 0, 0, 0.012));
+  const shootMat = new THREE.MeshBasicMaterial({ color: P.star, transparent: true, opacity: 0, toneMapped: false, depthWrite: false });
+  const shoot = at(new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.025), shootMat), 0, 0, 0.024);
   shoot.rotation.z = -0.45;
   win.add(shoot);
   const fr = P.paper;
@@ -113,11 +115,20 @@ export function buildStars({ root, P, rand, D }) {
   scope.rotation.y = -0.45; // towards the window
   root.add(scope);
 
-  let night = false;
+  let night = false; // the window shows the night: in close-up, or because it is night (ROOM-07)
+  let nightOutside = false;
+  const showNight = (on, duration) => {
+    gsap.killTweensOf(nightMat);
+    gsap.to(nightMat, { opacity: on ? 1 : 0, duration });
+  };
+  timeOfDay.push((on, duration) => {
+    nightOutside = on;
+    if (!night) showNight(on, duration);
+  });
   const shootStar = () => {
     gsap.killTweensOf(shoot.position);
     gsap.killTweensOf(shootMat);
-    shoot.position.set(-WW / 2 + 0.4, WH / 2 - 0.3, 0.01);
+    shoot.position.set(-WW / 2 + 0.4, WH / 2 - 0.3, 0.024);
     gsap.to(shoot.position, { x: WW / 2 - 0.3, y: -0.2, duration: 0.9 * D, ease: 'power1.in' });
     gsap.fromTo(shootMat, { opacity: 0 }, { opacity: 1, duration: 0.45 * D, yoyo: true, repeat: 1 });
     sound.toggle();
@@ -129,13 +140,13 @@ export function buildStars({ root, P, rand, D }) {
     activity: { seat: { x: 2.38, z: -2.0, yaw: Math.PI - 0.45, y: 0 }, pose: 'scope' },
     onFocus() {
       night = true;
-      gsap.to(nightMat, { opacity: 1, duration: 1.2 * D });
+      showNight(true, 1.2 * D);
       gsap.to(tube.rotation, { x: 0.72, duration: 0.8 * D, ease: 'power2.inOut' });
       setTimeout(shootStar, 1200 * D);
     },
     onBlur() {
       night = false;
-      gsap.to(nightMat, { opacity: 0, duration: 0.8 * D });
+      showNight(nightOutside, 0.8 * D);
       gsap.to(tube.rotation, { x: 0.5, duration: 0.6 * D });
     },
     interact(obj, ctx) {

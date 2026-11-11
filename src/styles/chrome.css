@@ -28,8 +28,23 @@
   font-size: var(--text-xl);
   letter-spacing: var(--tracking-display);
 }
-.sound {
+.topbar-actions {
   flex: none;
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* day and night: a sun, or a crescent moon cut from the same disc */
+.time-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-sand);
+  transition: background-color var(--dur-short) var(--ease-snap), box-shadow var(--dur-short) var(--ease-snap);
+}
+.time.is-night .time-icon {
+  background: transparent;
+  box-shadow: inset -4px -2px 0 0 var(--color-ink-2);
 }
 .sound-bars {
   display: inline-flex;
@@ -181,17 +196,20 @@
     align-self: stretch;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-3xs);
     overflow: visible;
   }
+  /* 36 px, not 44: the two rows sit close (UI-01, the one touch-target exception) */
   .dock-item {
-    min-height: 44px;
+    min-height: 36px;
     padding: 0 var(--space-2xs);
     border-radius: var(--radius-input);
   }
 }
 
 @media (max-width: 420px) {
-  .sound-label {
+  .sound-label,
+  .time-label {
     position: absolute;
     width: 1px;
     height: 1px;

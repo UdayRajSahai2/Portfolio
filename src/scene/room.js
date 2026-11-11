@@ -18,17 +18,17 @@ import { buildChess } from './zones/chess.js';
 // The whole room is built from primitives, so there are no model files to load.
 // Each zone lives in scene/zones/ and returns its hotspot (see the contract in
 // docs/SOFTWARE_ARCHITECT.md); this file assembles them and owns the floor plan.
-export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, channels = [], game = {}, font = 'sans-serif', reduceMotion = false }) {
+export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, channels = [], game = {}, reading = null, shelf = [], font = 'sans-serif', reduceMotion = false }) {
   const P = roomPalette();
   const rand = mulberry32(11);
   const tickers = [];
+  const timeOfDay = []; // (night, duration) => {}: what changes between day and night
   const root = new THREE.Group();
   scene.add(root);
-  scene.background = new THREE.Color(P.pageBg);
   const D = reduceMotion ? 0.01 : 1; // animation duration scale
-  const ctx = { root, P, rand, tickers, D, font, labels, channels, game, monitorFiles, languages };
+  const ctx = { root, P, rand, tickers, timeOfDay, D, font, labels, channels, game, reading, shelf, monitorFiles, languages };
 
-  buildShell(scene, ctx);
+  const { faceWalls } = buildShell(scene, ctx);
   const { entrance, porchPlant } = buildEntrance(ctx);
   buildDesk(ctx);
   const lamp = buildLamp(ctx);
@@ -43,13 +43,16 @@ export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, ch
   hotspots.chess = buildChess(ctx);
 
   // ── rug and plants ────────────────────────────────────────
-  const rug = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), mat(P.rug, { roughness: 1 }));
+  // the rug lies almost on the floor; the polygon offset keeps the depth test
+  // from flickering between them as the camera moves (worst on mobile GPUs)
+  const onFloor = (units) => ({ roughness: 1, polygonOffset: true, polygonOffsetFactor: units, polygonOffsetUnits: units });
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(2.2, 48), mat(P.rug, onFloor(-2)));
   rug.rotation.x = -Math.PI / 2;
   rug.receiveShadow = true;
-  at(rug, -0.6, 0.006, 0.6);
-  const rugRing = new THREE.Mesh(new THREE.RingGeometry(1.95, 2.05, 48), mat(P.rugEdge, { roughness: 1 }));
+  at(rug, -0.6, 0.012, 0.6);
+  const rugRing = new THREE.Mesh(new THREE.RingGeometry(1.95, 2.05, 48), mat(P.rugEdge, onFloor(-4)));
   rugRing.rotation.x = -Math.PI / 2;
-  at(rugRing, -0.6, 0.009, 0.6);
+  at(rugRing, -0.6, 0.02, 0.6);
   root.add(rug, rugRing);
   rug.userData.floor = rugRing.userData.floor = true;
 
@@ -95,6 +98,12 @@ export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, ch
     hotspots,
     lamp,
     entrance,
+    faceWalls,
+    // ROOM-07: day or night, eased over a second, or at once
+    setNight(night, animate = true) {
+      const duration = animate ? 1.2 * D : 0;
+      for (const f of timeOfDay) f(night, duration);
+    },
     tick(dt, t) {
       for (const f of tickers) f(dt, t);
     },

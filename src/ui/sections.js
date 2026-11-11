@@ -1,12 +1,16 @@
 // Pure renderers for the panel: content in, escaped HTML out.
+import { icon } from './icons.js';
 
 export const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-function renderProjects(projects = [], copy) {
+// the first `limit` projects, then a link to every repository when there is one (CONTENT-04)
+function renderProjects(projects = [], copy, { limit = projects.length, all = '' } = {}) {
   if (!projects.length) return '';
+  const more = all ? `<p class="all-projects"><a href="${esc(all)}" target="_blank" rel="noopener noreferrer">${icon('github')}${esc(copy.allProjects)}</a></p>` : '';
   return `
     <h3>${esc(copy.built)}</h3>
     <ul class="projects">${projects
+      .slice(0, limit)
       .map((p) => {
         const tags = (p.tags || []).map((t) => `<li>${esc(t)}</li>`).join('');
         const inner = `
@@ -20,7 +24,7 @@ function renderProjects(projects = [], copy) {
           ? `<li><a class="project" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${inner}</a></li>`
           : `<li><div class="project is-soon">${inner}</div></li>`;
       })
-      .join('')}</ul>`;
+      .join('')}</ul>${more}`;
 }
 
 function renderLanguages(languages = [], copy) {
@@ -44,12 +48,20 @@ function renderFavourites(favs = [], copy) {
   return `<h3>${esc(copy.favourites)}</h3><ul class="points">${real.map((f) => `<li>${esc(f.title)}${f.by ? `, ${esc(f.by)}` : ''}</li>`).join('')}</ul>`;
 }
 
-function renderReading(r, copy) {
+// what he is reading: his own note on it, or the one line on what it is about
+export function renderReading(r, copy) {
   if (!r?.title) return '';
+  const note = r.note || r.about;
   return `
     <h3>${esc(copy.reading)}</h3>
     <p class="reading"><span class="reading-title">${esc(r.title)}</span> <span class="reading-by">${esc(copy.by)} ${esc(r.by)}</span></p>
-    ${r.note ? `<p class="reading-note">${esc(r.note)}</p>` : ''}`;
+    ${note ? `<p class="reading-note">${esc(note)}</p>` : ''}`;
+}
+
+function renderShelf(books = [], copy) {
+  const real = books.filter((b) => b && b.title);
+  if (!real.length) return '';
+  return `<h3>${esc(copy.shelf)}</h3><ul class="points shelf">${real.map((b) => `<li>${esc(b.title)}${b.by ? `, ${esc(b.by)}` : ''}</li>`).join('')}</ul>`;
 }
 
 // The panel body for one section, as an HTML string. Every value is escaped.
@@ -72,9 +84,9 @@ export function renderSection(s, { profile, contact, interests, languages, copy 
     return `
       <h2 id="panel-title">${esc(contact.label)}</h2>
       <p class="blurb">${esc(contact.blurb)}</p>
-      <a class="mail" href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>
+      <a class="mail" href="mailto:${esc(contact.email)}">${icon('gmail')}<span>${esc(contact.email)}</span></a>
       <ul class="links">${contact.links
-        .map((l) => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a></li>`)
+        .map((l) => `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${icon(l.icon)}${esc(l.label)}</a></li>`)
         .join('')}</ul>`;
   }
   return `
@@ -82,10 +94,11 @@ export function renderSection(s, { profile, contact, interests, languages, copy 
     <p class="blurb">${esc(s.blurb)}</p>
     ${s.tryIt ? `<p class="try">${esc(s.tryIt)}</p>` : ''}
     ${s.sky ? `<p class="panel-action"><button type="button" class="btn" data-action="sky">${esc(s.sky.open)}</button></p>` : ''}
-    ${renderReading(s.reading, copy)}
+    ${s.reading ? `<div class="reading-now" aria-live="polite">${renderReading(s.reading, copy)}</div>` : ''}
     ${list(s.points)}
     ${renderFavourites(s.favourites, copy)}
-    ${renderProjects(s.projects, copy)}
+    ${renderShelf(s.shelf, copy)}
+    ${renderProjects(s.projects, copy, { limit: s.projectLimit, all: s.allProjects })}
     ${s.showLanguages ? renderLanguages(languages, copy) : ''}
     ${s.stack ? `<h3>${esc(copy.stack)}</h3><ul class="tags stack">${s.stack.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}`;
 }
