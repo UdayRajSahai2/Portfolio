@@ -6,6 +6,8 @@ import { cyl, sphere, box, at } from '../build.js';
 export const SQ = 0.18; // one square, in world units
 export const PIECE_Y = 1.1; // the board's surface, in the table's local space
 const EDGE = 0.63; // centre of the a-file and of the first rank
+// how tall each piece stands, so a hand can close over its top
+export const HEIGHT = { P: 0.18, R: 0.205, N: 0.21, B: 0.27, Q: 0.27, K: 0.33 };
 
 // board-local position of a square; white's first rank faces +z (the visitor)
 export function squarePos(square) {

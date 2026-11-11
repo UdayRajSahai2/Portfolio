@@ -34,6 +34,25 @@
   gap: var(--space-xs);
 }
 
+/* leave: a little door, ajar */
+.leave-icon {
+  position: relative;
+  width: 11px;
+  height: 15px;
+  border: 2px solid var(--color-ink-2);
+  border-radius: 3px 3px 1px 1px;
+}
+.leave-icon::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 1px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--color-ink-2);
+}
+
 /* day and night: a sun, or a crescent moon cut from the same disc */
 .time-icon {
   width: 14px;
@@ -209,7 +228,8 @@
 
 @media (max-width: 420px) {
   .sound-label,
-  .time-label {
+  .time-label,
+  .leave-label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -219,6 +239,20 @@
   }
   .hint {
     display: none;
+  }
+  /* three icon buttons and the full name on one row, down to 320 px */
+  .topbar {
+    gap: var(--space-xs);
+  }
+  .topbar-actions {
+    gap: var(--space-2xs);
+  }
+  .topbar-actions .btn {
+    width: 44px;
+    padding: 0;
+  }
+  .wordmark {
+    padding-inline: var(--space-sm);
   }
 }
 

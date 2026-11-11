@@ -68,6 +68,7 @@ export function buildGym({ root, P, D }) {
   let lastPress = 0;
   return {
     group: g,
+    extra: [rubberFloor], // the mat is the gym too: a tap on it opens it
     stand: { x: -4.4, z: 2.2, look: [-7, 1.0] },
     view: { pos: [-2.4, 3.4, 4.2], target: [-6.0, 1.2, 1.0] },
     activity: {

@@ -52,7 +52,9 @@
   pointer-events: none;
 }
 
-@media (max-width: 899px), (max-aspect-ratio: 11/10) {
+/* stacked, scene above the card: portrait screens, and narrow ones with height to spare.
+   A short landscape screen (a phone on its side) keeps the card beside the scene. */
+@media (max-aspect-ratio: 11/10), (max-width: 899px) and (min-height: 501px) {
   .intro {
     align-items: end;
     padding-bottom: max(var(--space-lg), env(safe-area-inset-bottom));
@@ -68,5 +70,26 @@
   }
   .intro-sentence {
     font-size: var(--text-md);
+  }
+}
+
+/* a phone on its side: the card beside the scene, compact enough to leave it room */
+@media (max-height: 500px) and (min-aspect-ratio: 11/10) {
+  .intro {
+    padding: var(--space-md) var(--gutter);
+  }
+  .intro-copy {
+    max-width: min(24rem, 46vw);
+    gap: var(--space-sm);
+    padding: var(--space-lg);
+  }
+  .intro-title {
+    font-size: var(--text-hello-s);
+  }
+  .intro-sentence {
+    font-size: var(--text-md);
+  }
+  .intro-actions {
+    margin-top: 0;
   }
 }

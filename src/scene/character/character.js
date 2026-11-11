@@ -9,9 +9,20 @@ import { makeBook } from './book.js';
 // Local forward is +z. The feet stand at y = 0.
 // Joints: hips and knees, shoulders and elbows, the head. A pose (poses.js)
 // sets target angles, and the update loop eases every joint towards them.
+// Everything above the hips hangs from `upper`, so he can lean in from the hips
+// while sitting; `reach(point)` puts one hand on a point in the world (a chess piece).
 
 const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 const ease = (a, b, k) => a + (b - a) * k;
+const clamp = THREE.MathUtils.clamp;
+
+const HIP = 0.9; // hip height; `upper` pivots here
+const SHOULDER = 0.85; // shoulders above the hips
+const UPPER_ARM = 0.32;
+const FOREARM = 0.33; // elbow to the centre of the hand
+const REACH = 0.62; // what the arm reaches without stretching
+const LEAN_MAX = 0.4; // radians he leans in from the hips, at most: further and his head hides the board
+const STRETCH_MAX = 2.6; // a cartoon arm stretches for the far side of the board
 
 // colors: { paper, ink, muted, cover } for the book he reads, taken from the theme tokens
 export function createCharacter(look, { reduceMotion = false, font = 'sans-serif', colors, book = { title: '', by: '' } } = {}) {
@@ -25,6 +36,9 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
   const root = new THREE.Group();
   const body = new THREE.Group();
   root.add(body);
+  const upper = new THREE.Group(); // torso, arms and head, pivoting at the hips
+  upper.position.y = HIP;
+  body.add(upper);
 
   // legs: a hip, then a knee
   const knees = [];
@@ -44,7 +58,7 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
 
   // torso
   const torso = new THREE.Group();
-  torso.position.y = 1.38;
+  torso.position.y = 1.38 - HIP;
   const chest = part(new THREE.CapsuleGeometry(0.32, 0.35, 6, 18), shirt);
   chest.scale.z = 0.78;
   torso.add(chest);
@@ -64,28 +78,41 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
     print.userData.noGlow = true;
     torso.add(print);
   }
-  body.add(torso);
-  body.add(part(new THREE.CylinderGeometry(0.1, 0.11, 0.16, 12), skin, 0, 1.93, 0));
+  upper.add(torso);
+  upper.add(part(new THREE.CylinderGeometry(0.1, 0.11, 0.16, 12), skin, 0, 1.93 - HIP, 0));
 
   // arms: a shoulder, then an elbow (index 0 = -x side, 1 = +x side; the +x arm waves)
   const elbows = [];
   const hands = [];
+  const segments = []; // [upper arm, forearm] meshes, for the stretch
   const arms = [-1, 1].map((s) => {
     const p = new THREE.Group();
-    p.position.set(0.4 * s, 1.75, 0);
+    p.position.set(0.4 * s, SHOULDER, 0);
     p.rotation.z = 0.1 * s;
-    p.add(part(new THREE.CapsuleGeometry(0.085, 0.2, 4, 10), shirt, 0, -0.15, 0));
+    const upperArm = part(new THREE.CapsuleGeometry(0.085, 0.2, 4, 10), shirt, 0, -0.15, 0);
+    p.add(upperArm);
     const elbow = new THREE.Group();
-    elbow.position.y = -0.32;
-    elbow.add(part(new THREE.CapsuleGeometry(0.08, 0.16, 4, 10), shirt, 0, -0.12, 0));
-    const hand = part(new THREE.SphereGeometry(0.1, 12, 10), skin, 0, -0.33, 0);
+    elbow.position.y = -UPPER_ARM;
+    const forearm = part(new THREE.CapsuleGeometry(0.08, 0.16, 4, 10), shirt, 0, -0.12, 0);
+    elbow.add(forearm);
+    const hand = part(new THREE.SphereGeometry(0.1, 12, 10), skin, 0, -FOREARM, 0);
     elbow.add(hand);
     p.add(elbow);
     elbows.push(elbow);
     hands.push(hand);
-    body.add(p);
+    segments.push([upperArm, forearm]);
+    upper.add(p);
     return p;
   });
+  // 1 is his own length; more is the cartoon stretch
+  function setStretch(i, k) {
+    const [u, f] = segments[i];
+    u.scale.y = f.scale.y = k;
+    u.position.y = -0.15 * k;
+    f.position.y = -0.12 * k;
+    elbows[i].position.y = -UPPER_ARM * k;
+    hands[i].position.y = -FOREARM * k;
+  }
 
   // things he can hold
   const remote = part(new THREE.BoxGeometry(0.07, 0.04, 0.24), dark, 0, -0.38, 0.08);
@@ -115,7 +142,7 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
 
   // head
   const head = new THREE.Group();
-  head.position.y = 2.38;
+  head.position.y = 2.38 - HIP;
   const skull = part(new THREE.SphereGeometry(0.42, 32, 24), skin);
   skull.scale.set(1, 0.96, 0.98);
   head.add(skull);
@@ -163,7 +190,49 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
   }
 
   buildHair(head, look, hairMat);
-  body.add(head);
+  upper.add(head);
+
+  // ── reaching ─────────────────────────────────────────────
+  let reachAt = null; // the world point his hand goes to, or null
+  let reachArm = 1;
+  let reachW = 0; // 0 = his pose, 1 = the reach; eased, so the hand glides in and out
+  let lean = 0;
+  let leanGoal = 0;
+  let stretch = 1;
+  const ik = { a: 0, c: 0, e: 0 };
+  const rp = new THREE.Vector3();
+
+  // how far to lean, and how much to stretch, for the hand to arrive
+  function planReach() {
+    root.updateMatrixWorld(true);
+    root.worldToLocal(rp.copy(reachAt));
+    const sx = reachArm ? 0.4 : -0.4;
+    const hip = cur.bodyY + HIP;
+    let d = Infinity;
+    let l = 0;
+    for (; l <= LEAN_MAX; l += 0.05) {
+      d = Math.hypot(rp.x - sx, rp.y - (hip + SHOULDER * Math.cos(l)), rp.z - SHOULDER * Math.sin(l));
+      if (d <= REACH) break;
+    }
+    leanGoal = Math.min(l, LEAN_MAX);
+    stretch = clamp(d / REACH, 1, STRETCH_MAX);
+  }
+
+  // two bones onto the point: the elbow bend from the distance, then the shoulder's swing
+  function solveArm(i, k) {
+    root.updateMatrixWorld(true);
+    upper.worldToLocal(rp.copy(reachAt)).sub(arms[i].position);
+    const l1 = UPPER_ARM * k;
+    const l2 = FOREARM * k;
+    const dist = Math.min(rp.length(), (l1 + l2) * 0.999);
+    rp.setLength(dist);
+    const e = -(Math.PI - Math.acos(clamp((l1 * l1 + l2 * l2 - dist * dist) / (2 * l1 * l2), -1, 1)));
+    const hy = -l1 - l2 * Math.cos(e);
+    const hz = -l2 * Math.sin(e);
+    ik.c = Math.asin(clamp(-rp.x / hy, -1, 1));
+    ik.a = Math.atan2(rp.z, rp.y) - Math.atan2(hz, hy * Math.cos(ik.c));
+    ik.e = e;
+  }
 
   // ── state ────────────────────────────────────────────────
   let path = [];
@@ -231,6 +300,7 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
     },
     // 'stand' | 'sit' | 'type' | 'read' | 'remote' | 'play' | 'bench' | 'scope'; y lifts the body onto a seat
     setPose(name, { y = 0 } = {}) {
+      reachAt = null;
       poseName = name;
       target = poseTargets(name);
       seatY = y;
@@ -265,6 +335,26 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
     },
     stopWave() {
       waveT = 0;
+    },
+    // one hand to a world point (null takes it back). `via` is where it goes next, if
+    // anywhere, so the arm on the side of both is the one that reaches.
+    reach(point, via = point) {
+      if (!point) {
+        reachAt = null;
+        return;
+      }
+      if (!reachAt) {
+        root.updateMatrixWorld(true);
+        const a = root.worldToLocal(rp.copy(point)).x;
+        const b = root.worldToLocal(rp.copy(via)).x;
+        reachArm = a + b >= 0 ? 1 : 0;
+      }
+      reachAt = (reachAt || new THREE.Vector3()).copy(point);
+    },
+    // where the reaching hand is now, in the world
+    reachHand(out) {
+      root.updateMatrixWorld(true);
+      return hands[reachArm].getWorldPosition(out);
     },
     headTop() {
       return head.localToWorld(new THREE.Vector3(0, 0.7, 0));
@@ -358,6 +448,22 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
       }
       arms[1].rotation.z += (armZ - arms[1].rotation.z) * Math.min(1, dt * 12);
       arms[1].rotation.x += (armX - arms[1].rotation.x) * Math.min(1, dt * 12);
+
+      // a reach: lean in from the hips, then lay the arm onto the point (over the pose)
+      const kr = reduceMotion ? 1 : Math.min(1, dt * 6);
+      reachW = ease(reachW, reachAt ? 1 : 0, kr);
+      if (reachAt) planReach();
+      lean = ease(lean, reachAt ? leanGoal : 0, kr);
+      upper.rotation.x = lean;
+      if (reachW > 0.002) {
+        const i = reachArm;
+        const k = 1 + (stretch - 1) * reachW;
+        setStretch(i, k);
+        if (reachAt) solveArm(i, k);
+        arms[i].rotation.x = ease(arms[i].rotation.x, ik.a, reachW);
+        arms[i].rotation.z = ease(arms[i].rotation.z, ik.c, reachW);
+        elbows[i].rotation.x = ease(elbows[i].rotation.x, ik.e, reachW);
+      } else if (segments[reachArm][0].scale.y !== 1) setStretch(reachArm, 1);
 
       if (heldBook.group.visible) holdBookInHands();
 

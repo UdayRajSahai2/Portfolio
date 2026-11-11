@@ -92,10 +92,17 @@ export function buildShell(scene, { root, P, rand, timeOfDay }) {
 
   const wallBack = mat(P.wall, { roughness: 0.95 });
   const wallSide = mat(P.wallSide, { roughness: 0.95 });
-  const back = at(box(X1 - X0 + 0.6, H, 0.3, wallBack), 0, H / 2, ZB - 0.15);
-  const left = at(box(0.3, H, ZF - ZB + 0.3, wallSide), X0 - 0.15, H / 2, (ZB + ZF) / 2);
-  const right = at(box(0.3, H, ZF - ZB + 0.3, wallSide), X1 + 0.15, H / 2, (ZB + ZF) / 2);
-  for (const w of [back, left, right]) w.userData.wall = true;
+  // Each wall's inner face ends exactly at the corner (ROOM-08). Faces that ran on
+  // past each other met at nearly the same depth and traded pixels along the seam,
+  // which crawled as the view moved. Posts fill the outside of the two corners.
+  const back = at(box(X1 - X0, H, 0.3, wallBack), 0, H / 2, ZB - 0.15);
+  // The sun comes from the left, so the left wall shades the back wall. It casts that shadow
+  // from its outer face: from its inner face (the default) the shadow tied with the back wall
+  // right at the corner and leaked light through in a dashed line (ROOM-08).
+  const left = at(box(0.3, H, ZF - ZB, mat(P.wallSide, { roughness: 0.95, shadowSide: THREE.FrontSide })), X0 - 0.15, H / 2, (ZB + ZF) / 2);
+  const right = at(box(0.3, H, ZF - ZB, wallSide), X1 + 0.15, H / 2, (ZB + ZF) / 2);
+  for (const x of [X0 - 0.15, X1 + 0.15]) back.add(at(box(0.3, H, 0.3, wallSide), x, 0, 0));
+  for (const w of [back, left, right]) w.traverse((o) => (o.userData.wall = true));
   root.add(back, left, right);
   // a wall between the camera and the room steps aside, so the view can go all the way round
   const walls = [
@@ -110,7 +117,7 @@ export function buildShell(scene, { root, P, rand, timeOfDay }) {
       else if (!show && w.mesh.parent) w.mesh.removeFromParent(); // hidden is not gone: raycasts still hit it
     }
   }
-  root.add(at(box(X1 - X0, 0.22, 0.05, P.trim), 0, 0.11, ZB + 0.02));
+  root.add(at(box(X1 - X0 - 0.09, 0.22, 0.05, P.trim), 0, 0.11, ZB + 0.02)); // stops where the side trims begin
   root.add(at(box(0.05, 0.22, ZF - ZB, P.trim), X0 + 0.02, 0.11, (ZB + ZF) / 2));
   root.add(at(box(0.05, 0.22, ZF - ZB, P.trim), X1 - 0.02, 0.11, (ZB + ZF) / 2));
 

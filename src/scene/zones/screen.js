@@ -67,6 +67,7 @@ export function buildScreen({ root, P, tickers, font, channels }) {
       ctx.fill();
     },
   ];
+  const posterGroups = [];
   posters.forEach((draw, i) => {
     const t = canvasTex(256, 360, draw);
     const pg = new THREE.Group();
@@ -78,11 +79,12 @@ export function buildScreen({ root, P, tickers, font, channels }) {
     at(pg, X1 - 0.04, 3.6, i === 0 ? 2.5 : -3.5);
     pg.traverse((o) => (o.userData.wall = true));
     root.add(pg);
+    posterGroups.push(pg);
   });
 
   return {
     group: g,
-    extra: [sofa, console_],
+    extra: [sofa, console_, ...posterGroups],
     stand: { x: 3.4, z: 0.4, look: [X1, -0.6] },
     view: { pos: [2.4, 4.4, 3.8], target: [6.0, 2.0, -0.9] },
     activity: { seat: { x: 4.45, z: -1.22, yaw: Math.PI / 2, y: -0.02 }, pose: 'remote', hold: 'remote' },

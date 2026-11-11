@@ -3,11 +3,17 @@ import * as content from './data/content.js';
 import { createUI } from './ui/ui.js';
 import { createWorld } from './world/world.js';
 import { sound } from './sound.js';
+import { stayFresh } from './fresh.js';
 
 // Boot: build the page UI, wait for the font, then start the 3D room
 // (or, without WebGL, let the dock and panels work on their own).
 
+stayFresh();
+
 const FONT = 'Chillax';
+// text drawn into the room (signs, spines, the monitor's labels): Chillax, or if it is slow
+// to arrive, a rounded sans like it, never the browser's default serif
+const CANVAS_FONT = `${FONT}, ui-rounded, ui-sans-serif, system-ui, sans-serif`;
 const { profile, contact, about, interests, avatar, languages, uiCopy } = content;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -67,7 +73,7 @@ function fontsReady() {
 ui.loading(profile.hello.loading);
 if (webglAvailable()) {
   fontsReady().then(() => {
-    world = createWorld({ ui, content, font: FONT, reduceMotion, select, labelOf, lineFor });
+    world = createWorld({ ui, content, font: CANVAS_FONT, reduceMotion, select, labelOf, lineFor });
   });
 } else {
   document.body.classList.add('no-webgl');

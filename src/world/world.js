@@ -93,7 +93,8 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   const look = start.target.clone(); // what the camera looks at while a tween drives it
 
   const controls = new OrbitControls(camera, canvas);
-  Object.assign(controls, { enableDamping: true, dampingFactor: 0.07, enablePan: false, rotateSpeed: 0.5, zoomSpeed: 0.8, enabled: false });
+  // the view glides to a stop, unless motion is reduced (A11Y-03): then it stops where you let go
+  Object.assign(controls, { enableDamping: !reduceMotion, dampingFactor: 0.07, enablePan: false, rotateSpeed: 0.5, zoomSpeed: 0.8, enabled: false });
 
   // In the room the view goes all the way round (ROOM-04). In a close-up it stays on
   // what the close-up frames: pinch or scroll to zoom, drag to look a little either side (UI-07).
@@ -159,13 +160,14 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
       return hit ? { id: 'me', object: hit.object } : null;
     }
     if (focusedId) {
-      const hit = raycaster.intersectObjects([...groupsFor(focusedId), lamp.group], true)[0];
-      return hit ? { id: hotspotOf(hit.object), object: hit.object, point: hit.point } : null;
+      const near = raycaster.intersectObjects([...groupsFor(focusedId), lamp.group], true)[0];
+      if (near) return { id: hotspotOf(near.object), object: near.object, point: near.point };
     }
     const hit = raycaster.intersectObjects([room.root, me.group], true)[0];
     if (!hit) return null;
     const id = hotspotOf(hit.object);
     if (id) return { id, object: hit.object };
+    if (focusedId) return null; // in a close-up, empty space closes it
     if (hit.object.userData.wall) return null;
     return { id: 'floor', point: hit.point, onFloor: !!hit.object.userData.floor };
   }
@@ -195,7 +197,8 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   }
 
   const setPointer = (e) => pointer.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
-  const DRAG = 6; // px a press may move and still count as a click
+  // px a press may move and still count as a click; a fingertip wanders more than a mouse
+  const dragLimit = (e) => (e.pointerType === 'mouse' ? 6 : 14);
   let down = null;
   const touching = new Set(); // pointers on the canvas now; two or more is a pinch, never a click
   let pinched = false;
@@ -213,7 +216,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     if (skyView.isOpen) return;
     setPointer(e);
     if (e.pointerType === 'mouse' && !(down && e.buttons)) setHovered(pick(), e.clientX, e.clientY);
-    if (down && e.buttons && Math.hypot(e.clientX - down.x, e.clientY - down.y) > DRAG) {
+    if (down && e.buttons && Math.hypot(e.clientX - down.x, e.clientY - down.y) > dragLimit(e)) {
       if (controls.enabled) canvas.style.cursor = 'grabbing';
       hoverRing.visible = false;
     }
@@ -226,12 +229,21 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     if (!down) return;
     const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
     down = null;
-    if (wasPinch || moved > DRAG || skyView.isOpen) return;
+    if (wasPinch || moved > dragLimit(e) || skyView.isOpen) return;
     setPointer(e);
-    onClick(pick());
+    onClick(pick(), e.pointerType !== 'mouse');
   });
 
-  function onClick(hit) {
+  // a touch has no hover, so what was tapped lights up for a moment: the tap is felt at once
+  function flash(id) {
+    const groups = groupsFor(id);
+    groups.forEach((g) => setGlow(g, true));
+    setTimeout(() => {
+      if (hovered?.id !== id) groups.forEach((g) => setGlow(g, false));
+    }, 280);
+  }
+
+  function onClick(hit, touch = false) {
     if (phase === 'intro') {
       if (hit?.id === 'me') {
         me.waveLoop();
@@ -245,15 +257,14 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
       return;
     }
     if (hit.id === 'lamp') return lamp.toggle();
-    if (focusedId) {
-      if (hit.id === focusedId) hotspots[hit.id]?.interact?.(hit.object, closeUp(hit));
-      return;
-    }
+    if (focusedId && hit.id === focusedId) return hotspots[hit.id]?.interact?.(hit.object, closeUp(hit));
+    if (focusedId) return select(hit.id === 'me' ? 'about' : hit.id); // another zone: go straight there
     if (hit.id === 'me') return introduce();
     if (hit.id === 'floor') {
       ui.dismissHint();
       return walkFree(hit.point);
     }
+    if (touch) flash(hit.id);
     select(hit.id);
   }
 
@@ -437,7 +448,76 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     orbitRoom();
   }
 
+  // ── leaving (INTRO-07): he walks you out, the wall rises, the door closes, he says goodbye ──
+  let helloAgain = null;
+  function leaveRoom() {
+    if (phase !== 'room') return;
+    if (ui.current) {
+      ui.close({ restoreFocus: false });
+      sound.close();
+      leaveFocus();
+    }
+    phase = 'leaving';
+    walk++;
+    pending = null;
+    skipTalk = null;
+    ui.setPending(null);
+    ui.hideBubble();
+    if (hovered) setHovered(null);
+    controls.enabled = false;
+    destRing.visible = hoverRing.visible = false;
+    if (activities.current) activities.stop();
+    me.stop();
+    ui.startLeavingRoom();
+    updateViewShift();
+    const out = introView(entrance.door.z);
+
+    if (reduceMotion) {
+      entrance.raise(0);
+      entrance.close();
+      me.place(entrance.stepOutside.x, entrance.stepOutside.z, 0);
+      camera.position.copy(out.pos);
+      look.copy(out.target);
+      return goodbye();
+    }
+
+    // the camera goes back outside while he crosses the room; once both are there,
+    // he walks out through the door and it closes behind him
+    let waiting = 2;
+    const through = () => {
+      if (--waiting) return;
+      me.followPath([{ x: entrance.door.x, z: entrance.door.z - 0.8 }, entrance.threshold], () => {
+        entrance.close();
+        me.followPath([entrance.stepOutside], goodbye);
+      });
+    };
+    entrance.raise(1.1);
+    flyTo(out.pos, out.target, { duration: 2.2, onComplete: through });
+    const toDoor = nav.find(me.position, entrance.inside);
+    if (toDoor?.length) me.followPath(toDoor, through);
+    else through(); // already there
+  }
+
+  function goodbye() {
+    phase = 'intro';
+    updateViewShift();
+    me.faceTowards(camera.position.x, camera.position.z);
+    me.wave(2.4);
+    sound.open();
+    ui.say(avatar.goodbye, 4200);
+    ui.returnToIntro();
+    ui.ready(enterRoom);
+    clearTimeout(helloAgain);
+    // after a while he is back at the door, ready to say hello to whoever comes next
+    helloAgain = setTimeout(() => {
+      if (phase !== 'intro') return;
+      me.waveLoop();
+      ui.say(profile.hello.bubble, Infinity);
+    }, 5200); // time to read the goodbye: not motion, so reduced motion does not shorten it
+  }
+
   function enterRoom() {
+    clearTimeout(helloAgain);
     phase = 'entering';
     if (hovered) setHovered(null);
     ui.startLeavingIntro();
@@ -448,7 +528,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
 
     if (reduceMotion) {
       entrance.open();
-      entrance.fade(0);
+      entrance.lower(0);
       me.place(entrance.inside.x, entrance.inside.z, 0);
       const v = homeView();
       camera.position.copy(v.pos);
@@ -463,7 +543,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
       me.faceTowards(entrance.door.x, entrance.door.z - 2);
       entrance.open().then(() => {
         me.followPath([{ x: entrance.door.x, z: entrance.door.z - 0.8 }, entrance.inside], welcome);
-        setTimeout(() => entrance.fade(1.0), 450);
+        setTimeout(() => entrance.lower(1.0), 450);
         const v = homeView();
         flyTo(v.pos, v.target, { duration: 2.6, onComplete: finishEntry });
       });
@@ -493,6 +573,19 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
   const head = new THREE.Vector3();
   let appliedShift = { x: NaN, y: NaN };
 
+  // If frames run long (under about 45 a second), draw fewer pixels: smooth beats sharp.
+  const PIXEL_RATIOS = [Math.min(window.devicePixelRatio, 1.5), 1, 0.8];
+  let quality = 0;
+  let slowFor = 0;
+  function holdFrameRate(raw) {
+    slowFor = raw > 1 / 45 ? slowFor + Math.min(raw, 0.1) : Math.max(0, slowFor - raw); // one long frame (a shader compiling) is not a slow phone
+    if (slowFor < 2 || quality >= PIXEL_RATIOS.length - 1) return;
+    if (me.moving || gsap.isTweening(camera.position)) return; // never mid-motion, where the change would show
+    quality++;
+    slowFor = 0;
+    if (PIXEL_RATIOS[quality] < renderer.getPixelRatio()) renderer.setPixelRatio(PIXEL_RATIOS[quality]);
+  }
+
   // in the room, the view drifts a little towards wherever he is
   function driftTowardsCharacter(dt) {
     const p = me.position;
@@ -513,7 +606,9 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
 
   function frame() {
     requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const raw = clock.getDelta();
+    const dt = Math.min(raw, 0.05);
+    if (!document.hidden) holdFrameRate(raw);
     const t = clock.elapsedTime;
     if (skyView.isOpen) return skyView.render(renderer, dt); // the room is not drawn behind the sky
 
@@ -554,6 +649,7 @@ export function createWorld({ ui, content, font, reduceMotion, select, labelOf, 
     leaveFocus,
     action(name) {
       if (name === 'sky') skyView.open();
+      if (name === 'leave') leaveRoom();
       if (name === 'time') {
         night = !night;
         room.setNight(night);

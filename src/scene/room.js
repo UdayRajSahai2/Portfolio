@@ -30,11 +30,11 @@ export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, ch
 
   const { faceWalls } = buildShell(scene, ctx);
   const { entrance, porchPlant } = buildEntrance(ctx);
-  buildDesk(ctx);
+  const desk = buildDesk(ctx);
   const lamp = buildLamp(ctx);
   // order matters: zones draw from the shared random sequence
   const hotspots = {};
-  hotspots.code = buildCode(ctx);
+  hotspots.code = { ...buildCode(ctx), extra: desk };
   hotspots.contact = buildContact(ctx);
   hotspots.books = buildBooks(ctx);
   hotspots.stars = buildStars(ctx);
@@ -84,7 +84,7 @@ export function buildRoom(scene, { monitorFiles, languages = [], labels = {}, ch
       { x: 0, z: -2.95, r: 0.45 }, // desk chair
       { x: 3.0, z: -3.3, r: 0.5 }, // telescope
       { x: 3.6, z: 2.6, r: 0.95 }, // chess table
-      { x: 3.6, z: 1.15, r: 0.33 }, // stools
+      { x: 3.6, z: 1.35, r: 0.33 }, // stools (his is pulled in, chess.js HIS_STOOL)
       { x: 3.6, z: 4.05, r: 0.33 },
       { x: 7.2, z: -4.3, r: 0.45 }, // plants
       { x: -7.35, z: -4.4, r: 0.4 },

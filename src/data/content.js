@@ -54,6 +54,8 @@ export const avatar = {
   mouth: '#5A2E2E',
   // after walking in
   welcome: 'Make yourself at home. Click anything.',
+  // when the visitor leaves and he walks them out (INTRO-07)
+  goodbye: 'Bye! It was lovely meeting you. Come back soon.',
   // clicking the character: he says these in turn, then About opens
   introLines: [
     'Hi, I’m Uday Raj Sahai.',
@@ -357,6 +359,7 @@ export const uiCopy = {
   soundOn: 'Sound on',
   soundOff: 'Sound off',
   night: 'Night',
+  leave: 'Leave',
   lamp: 'Desk lamp',
   me: 'That’s me',
 };

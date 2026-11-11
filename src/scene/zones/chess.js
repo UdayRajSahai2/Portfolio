@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { sound } from '../../sound.js';
 import { mat, mesh, cyl, at, canvasTex } from '../build.js';
-import { PIECE_Y, squarePos, squareAt, piece } from '../chess/pieces.js';
+import { PIECE_Y, HEIGHT, squarePos, squareAt, piece } from '../chess/pieces.js';
 import { parse, movesFrom, apply, inCheck, outcome, chooseMove } from '../chess/rules.js';
 
 // CHESS: a game against the character (spec CHESS-01..06). The visitor plays
@@ -14,6 +14,8 @@ const SETUP = {
 };
 const LIFT = 0.1; // how far a selected piece rises
 const THINK = 600; // ms he takes before answering
+const HIS_STOOL = 1.25; // his stool's distance from the table's centre: as close as his chest allows
+const GRIP = 0.06; // his hand's centre sits this far above the top of a piece it holds
 const RESET_AFTER = 2600; // ms between the end of a game and the fresh board
 
 export function buildChess({ root, P, D, game = {} }) {
@@ -38,8 +40,8 @@ export function buildChess({ root, P, D, game = {} }) {
   at(board, 0, 1.07, 0);
   g.add(board);
 
-  // stools: the visitor's side (+z) and his side (-z)
-  for (const z of [-1.45, 1.45]) {
+  // stools: the visitor's side (+z) and his side (-z), his pulled in so his hand reaches the board
+  for (const z of [-HIS_STOOL, 1.45]) {
     const st = new THREE.Group();
     st.add(at(cyl(0.32, 0.32, 0.08, P.accent2, 24), 0, 0.75, 0));
     st.add(at(cyl(0.04, 0.04, 0.7, P.metal, 8, { metalness: 0.7 }), 0, 0.38, 0));
@@ -142,12 +144,47 @@ export function buildChess({ root, P, D, game = {} }) {
     promoted.push(q);
   }
 
-  function play(from, to, next) {
+  // his move, by hand (CHESS-04): reach to the piece, lift it, carry it over, set it down
+  let carrying = null; // { m, h } while the piece rides in his hand
+  let handMove = null; // the timeline of a move under way
+  const at3 = new THREE.Vector3();
+  function overSquare(square, h, lift) {
+    const { x, z } = squarePos(square);
+    return g.localToWorld(at3.set(x, PIECE_Y + h + GRIP + lift, z)).clone();
+  }
+  function moveByHand(from, to, done) {
+    const m = onSquare[from];
+    const taken = onSquare[to];
+    const h = HEIGHT[m.userData.type] || 0.2;
+    const dest = squarePos(to);
+    delete onSquare[from];
+    onSquare[to] = m;
+    me.reach(overSquare(from, h, 0), overSquare(to, h, 0));
+    handMove = gsap.timeline({ onComplete: () => ((handMove = null), done()) });
+    handMove
+      .call(() => {
+        carrying = { m, h };
+        me.reach(overSquare(to, h, 0.12));
+      }, null, 0.6 * D)
+      .call(() => {
+        carrying = null;
+        gsap.to(m.position, { x: dest.x, y: PIECE_Y, z: dest.z, duration: 0.12 * D, ease: 'power2.in' });
+        sound.knock();
+        me.reach(null);
+      }, null, 1.35 * D)
+      .to({}, { duration: 0.3 * D }); // the arm settles back before the visitor's turn
+    if (taken) handMove.to(taken.scale, { x: 0.01, y: 0.01, z: 0.01, duration: 0.25 * D, onComplete: () => (taken.visible = false) }, 1.3 * D);
+  }
+
+  // `byHand`: his moves, when he is in his seat to make them
+  function play(from, to, next, byHand = false) {
     pos = apply(pos, from, to);
-    animateMove(from, to, () => {
+    const after = () => {
       promoteIfNeeded(to);
       next();
-    });
+    };
+    if (byHand && me?.pose === 'play') moveByHand(from, to, after);
+    else animateMove(from, to, after);
   }
 
   // after white moves: game over, or his answer
@@ -159,16 +196,16 @@ export function buildChess({ root, P, D, game = {} }) {
   function reply() {
     const m = chooseMove(pos, 'b');
     if (!m) return finish(game.draw);
-    me?.click(); // he reaches for the board
-    setTimeout(
-      () =>
-        play(m.from, m.to, () => {
-          const end = outcome(pos, 'w');
-          if (end) return finish(end === 'checkmate' ? game.iWin : game.draw);
-          if (inCheck(pos, 'w')) say(game.check);
-          busy = false;
-        }),
-      200 * D
+    play(
+      m.from,
+      m.to,
+      () => {
+        const end = outcome(pos, 'w');
+        if (end) return finish(end === 'checkmate' ? game.iWin : game.draw);
+        if (inCheck(pos, 'w')) say(game.check);
+        busy = false;
+      },
+      true
     );
   }
 
@@ -201,10 +238,20 @@ export function buildChess({ root, P, D, game = {} }) {
   return {
     group: g,
     stand: { x: CX - 1.5, z: CZ - 1.2, look: [CX, CZ] },
-    activity: { seat: { x: CX, z: CZ - 1.45, yaw: 0, y: -0.01 }, pose: 'play' },
+    activity: {
+      seat: { x: CX, z: CZ - HIS_STOOL, yaw: 0, y: -0.01 },
+      pose: 'play',
+      // the piece he carries rides under his hand
+      update(who) {
+        if (!carrying) return;
+        g.worldToLocal(who.reachHand(at3));
+        carrying.m.position.set(at3.x, at3.y - GRIP - carrying.h, at3.z);
+      },
+    },
     view: { pos: [CX, 4.1, CZ + 2.7], target: [CX, 1.3, CZ - 0.45] },
     onBlur() {
       deselect();
+      handMove?.progress(1); // leaving mid-move: the piece lands at once
     },
     // a click in the close-up: pick up a white piece, or put it on a marked square
     interact(obj, ctx) {
