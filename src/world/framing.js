@@ -25,9 +25,10 @@ export function homeView() {
   return { pos: new THREE.Vector3(0, camY, camZ), target: new THREE.Vector3(0, 1.4, -0.6) };
 }
 
-// On the intro, the scene moves aside for the text: right on wide screens, up on narrow ones.
+// On the intro, the scene moves aside for the text: right on wide screens and on phones
+// held sideways (short landscape), up on narrow ones. Matches the media queries in intro.css.
 export function introShift() {
-  const wide = window.innerWidth >= 900 && aspect() > 1.1;
+  const wide = aspect() > 1.1 && (window.innerWidth >= 900 || window.innerHeight <= 500);
   return wide ? { x: -window.innerWidth * 0.17, y: 0 } : { x: 0, y: window.innerHeight * 0.17 };
 }
 

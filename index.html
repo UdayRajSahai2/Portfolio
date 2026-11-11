@@ -28,6 +28,10 @@
     <header class="topbar">
       <p class="wordmark" id="wordmark"></p>
       <div class="topbar-actions">
+        <button id="leave" class="btn btn--quiet leave" type="button">
+          <span class="leave-icon" aria-hidden="true"></span>
+          <span class="leave-label">Leave</span>
+        </button>
         <button id="time" class="btn btn--quiet time" type="button" aria-pressed="false">
           <span class="time-icon" aria-hidden="true"></span>
           <span class="time-label">Night</span>
@@ -44,12 +48,13 @@
       <nav id="dock" class="dock" aria-label="Sections"></nav>
     </div>
 
-    <aside id="panel" class="panel" role="dialog" aria-labelledby="panel-title" inert>
+    <div id="panel" class="panel" role="dialog" aria-labelledby="panel-title" inert>
       <div class="panel-head">
         <button id="panel-close" class="btn btn--quiet panel-close" type="button">Back to the room</button>
       </div>
-      <div id="panel-body" class="panel-body"></div>
-    </aside>
+      <!-- focusable, so a keyboard can scroll a section that has no links in it -->
+      <div id="panel-body" class="panel-body" tabindex="0"></div>
+    </div>
 
     <section id="sky" class="sky" role="dialog" aria-modal="true" aria-labelledby="sky-title" hidden>
       <div class="sky-top">

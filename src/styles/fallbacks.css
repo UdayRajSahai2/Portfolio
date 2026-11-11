@@ -3,7 +3,8 @@
 .no-webgl #scene,
 .no-webgl .hint,
 .no-webgl #bubble,
-.no-webgl #time {
+.no-webgl #time,
+.no-webgl #leave {
   display: none;
 }
 .noscript {

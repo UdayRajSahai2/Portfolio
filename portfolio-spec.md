@@ -21,10 +21,11 @@ The one action: open a project or get in touch.
 | ID | Requirement |
 | --- | --- |
 | INTRO-01 | The first screen shows the outside of the room: a closed door in a front wall and Uday's character beside it, waving, with a speech bubble saying hello. |
-| INTRO-02 | Beside the scene: a headline (his name), one sentence (what he is) and an **Enter** button. Nothing else. All of it is visible at 1280 x 800 and at 375 x 667 without scrolling. |
+| INTRO-02 | Beside the scene: a headline (his name), one sentence (what he is) and an **Enter** button. Nothing else. All of it is visible at 1280 x 800, at 375 x 667 and on a phone held sideways (844 x 390, 667 x 375) without scrolling; there the text card sits beside the scene, compact. |
 | INTRO-03 | Enter is disabled with a plain status line ("Setting up the room") until the scene and fonts are ready. |
-| INTRO-04 | On Enter, the character turns, walks to the door and opens it, then walks through. The front wall fades away and the full room is revealed. The sequence takes about four seconds. |
+| INTRO-04 | On Enter, the character turns, walks to the door and opens it, then walks through. The front wall sinks into the ground (it stays opaque, so nothing flickers) and the full room is revealed. The sequence takes about four seconds. |
 | INTRO-05 | With reduced motion the door opens and the room appears without the walk or the camera move. |
+| INTRO-07 | Once inside, a **Leave** control in the top row walks the visitor out: any panel closes, the camera returns outside while he crosses to the door, the front wall rises, he walks out and the door closes behind him. He turns, waves and says goodbye ("Bye! It was lovely meeting you. Come back soon."), and the intro card comes back with Enter ready. A little later he says hello again. Not shown before entering or without WebGL. |
 | INTRO-06 | There is no chess imagery on the intro: no knight icon, no chess favicon, no chess print on the character. |
 
 ### Room
@@ -90,6 +91,7 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | UI-02 | The panel is a side sheet on landscape screens 721 px and wider, and a bottom sheet on phones and any portrait screen (`SHEET_QUERY` in `ui.js`, the same media query in `style.css`). While it is open, the dock centres beside the side sheet at 1200 px and wider and steps aside below that. Escape and the close button both close it and return focus. |
 | UI-06 | Close-ups fit the part of the screen the panel leaves free: the camera steps back by how much the panel narrows the view, and never leaves the room. The activity stays in view at every size. |
 | UI-07 | Once a close-up has arrived, pinching (touch) or the mouse wheel zooms in and out on it, between 0.4 and 1.2 times its distance, and dragging turns the view a little to either side; both ease to a stop. A pinch never counts as a tap. Leaving the close-up returns to the room view as it was. While the sky view is open the room's controls rest. |
+| UI-08 | Every tap answers. Each part of a zone opens it (the desk opens Code, the gym mat Gym, the window Stars, the posters Films). A touch may wander 14 px and still be a tap. On touch, the tapped zone lights up for a moment. With a panel open, tapping another zone or the character goes there; tapping empty space closes the panel. |
 | UI-03 | Nothing overlaps at 320, 375, 414, 768, 1024, 1440 or 1920 px wide: the header (name and sound) is one row, and the hint sits above the dock in the same column. |
 | UI-04 | A sound toggle, remembered across visits. All sound is synthesised. A Night toggle sits beside it (ROOM-07); on phones both show their icon only. |
 | UI-05 | Without WebGL the intro still shows and Enter opens the dock and panels without the room. With JavaScript off a short static profile with links is shown. |
@@ -113,7 +115,16 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | A11Y-03 | Every animation respects `prefers-reduced-motion`. |
 | PERF-01 | The first build of the scene runs once; no model or texture files are downloaded. Pixel ratio is capped at 1.5, the shadow map at 1024, and there is at most one point light. |
 | PERF-02 | Materials are shared by colour; repeated small parts (keyboard keys) are instanced. Canvas screens redraw slowly unless their zone is in close-up. |
+| PERF-04 | It stays smooth: if frames run long (under about 45 a second for two seconds), the pixel ratio steps down (1.5, then 1, then 0.8). |
 | PERF-03 | The character walks at about 4.4 units a second, and close-up camera moves take about a second. |
+
+---
+
+### Deploy
+
+| ID | Requirement |
+| --- | --- |
+| DEPLOY-01 | Visitors always get the latest build without clearing their browser data. Built files carry hashed names; each build also writes `version.json`, and the page checks it on load past every cache and reloads once onto a newer build (`src/fresh.js`). |
 
 ---
 

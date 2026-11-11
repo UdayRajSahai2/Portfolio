@@ -135,6 +135,7 @@ export function buildStars({ root, P, rand, D, timeOfDay }) {
   };
   return {
     group: scope,
+    extra: [win], // the window is the stars too: a tap on it opens them
     stand: { x: 2.2, z: -1.6, look: [WX, ZB] },
     view: { pos: [-0.8, 3.4, -1.0], target: [3.3, 2.5, -3.0] },
     activity: { seat: { x: 2.38, z: -2.0, yaw: Math.PI - 0.45, y: 0 }, pose: 'scope' },

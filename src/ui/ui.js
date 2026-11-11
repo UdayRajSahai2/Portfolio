@@ -85,6 +85,11 @@ export function createUI({ profile, contact, interests, languages, sections, ava
   });
   syncSound();
 
+  // leaving the room (INTRO-07): the world walks the visitor out
+  const leaveBtn = $('#leave');
+  leaveBtn.querySelector('.leave-label').textContent = copy.leave;
+  leaveBtn.addEventListener('click', () => onAction?.('leave'));
+
   // day and night: the world owns the time of day, this button only asks to switch it
   const timeBtn = $('#time');
   timeBtn.querySelector('.time-label').textContent = copy.night;
@@ -122,6 +127,17 @@ export function createUI({ profile, contact, interests, languages, sections, ava
     },
     startLeavingIntro() {
       document.body.classList.add('is-entering');
+    },
+    // walking out: the room's controls go, the intro card waits out of sight
+    startLeavingRoom() {
+      tip.classList.remove('show');
+      document.body.classList.remove('is-inside');
+      document.body.classList.add('is-intro', 'is-entering');
+    },
+    // back at the door: the card comes back in (ready() then arms Enter again)
+    returnToIntro() {
+      $('#intro').removeAttribute('hidden');
+      requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('is-entering')));
     },
 
     // ── panel ────────────────────────────────────────────

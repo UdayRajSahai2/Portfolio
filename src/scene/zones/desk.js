@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mat, box, cyl, at } from '../build.js';
 
-// The desk, the desk chair and a mug. The code zone sits on top of it.
+// The desk, the desk chair and a mug. The code zone sits on top of it, and
+// claims all three (room.js), so a tap anywhere on the desk opens Code.
 export function buildDesk({ root, P }) {
 const desk = new THREE.Group();
 desk.add(at(box(4, 0.12, 1.6, P.wood, { roughness: 0.6 }), 0, 1.5, -4.1));
@@ -26,4 +27,5 @@ at(handle, 0.12, 0.11, 0);
 mug.add(handle);
 at(mug, -0.95, 1.56, -3.6);
 root.add(mug);
+return [desk, chair, mug];
 }

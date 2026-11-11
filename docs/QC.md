@@ -42,9 +42,11 @@ PowerShell: run commands separately; do not use `&&`.
 ### Intro
 
 - [ ] Enter is disabled until ready, then focused
-- [ ] Character waves and the hello bubble is on screen at every width
+- [ ] Character waves and the hello bubble is on screen at every width, and on a phone held sideways (844 x 390) the card sits beside him, not over him
 - [ ] Enter plays the door sequence once; double clicking does not replay or break it
 - [ ] Reduced motion: room appears without the walk
+- [ ] Leave (inside only): from the room and from an open panel, he walks out, the wall rises, the door closes, he says goodbye; Enter works again; nothing flickers on the way in or out
+- [ ] Chess: his hand closes over the piece he moves and carries it to its square
 
 ### Room
 

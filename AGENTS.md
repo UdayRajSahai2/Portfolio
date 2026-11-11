@@ -80,6 +80,7 @@ Do not swap stack pieces (React, Tailwind, a model loader, a physics engine) wit
 index.html                  # shell: intro, top row, dock, panel, sky view, bubble, noscript profile
 src/
   main.js                   # boot: build the UI, wait for the font, start the world (or the no-WebGL fallback)
+  fresh.js                  # on load, reload once if a newer build is live (DEPLOY-01)
   sound.js                  # WebAudio effects and the lo-fi loop
   style.css                 # CSS entry: the Hallmark stamp, then @imports, page tokens, html/body/canvas
   styles/
@@ -97,6 +98,7 @@ src/
   ui/
     ui.js                   # the DOM: intro, dock, panel, bubble, tooltip, sound toggle, sky controls
     sections.js             # pure renderers: a section in, escaped HTML out
+    icons.js                # logos for links, as inline SVG in the text colour
     media.js                # SHEET_QUERY, shared by the UI, the camera and panel.css
   world/
     world.js                # renderer, camera, picking, walking, close-ups, the door, the frame loop
