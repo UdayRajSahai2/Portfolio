@@ -52,9 +52,10 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | ACT-08 | **His shelf:** the books listed in `shelf` in `content.js` stand on the shelf with their titles on the spines; filler books fill the gaps. In the Books close-up, hovering one names it. Clicking one makes him put his book back, take that one to the chair and read it, its cover the same colours as its spine; he says in one line what it is about, and "Reading now" in the panel shows it. Leaving the zone puts it back; the next visit starts with what he is reading now. The panel lists the shelf. |
 | ACT-03 | **Films and anime:** he sits on the sofa with a remote. Clicking the TV makes him press the remote and the channel changes. Channels: One Piece (anime), Breaking Bad (series), Interstellar (film), each drawn in the room's own style with its title as text. No official artwork. |
 | ACT-04 | **Gym:** he lies on the bench and presses the barbell; the bar follows his hands. |
+| ACT-09 | **Gym, dumbbells:** in the Gym close-up, clicking the dumbbells makes him rack the bar, take a matched pair and do alternating biceps curls standing on the mat; each dumbbell follows its hand. Clicking the bench or the bar takes him back to the press. Every visit starts with the press. |
 | ACT-05 | **Stars:** he walks to the telescope and leans to the eyepiece. |
 | ACT-06 | **Chess:** he sits on a stool across the board from the visitor and plays black (see CHESS). |
-| ACT-07 | Leaving a zone ends the activity: he stands, puts back what he took (the book, the bar) and steps off. |
+| ACT-07 | Leaving a zone ends the activity: he stands, puts back what he took (the book, the bar, the dumbbells) and steps off. |
 
 ### Chess (a game against the character)
 
