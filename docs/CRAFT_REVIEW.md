@@ -47,7 +47,7 @@ Read [`../portfolio-spec.md`](../portfolio-spec.md) § 3 (design system) and [`.
 
 - [ ] The room fills the viewport width; the intro scene sits beside (desktop) or above (phone) the text
 - [ ] Header, hint, dock and bubble never overlap at 320 to 1920
-- [ ] Touch targets at least 44 px
+- [ ] Touch targets at least 44 px; the one exception is the phone dock (36 px, UI-01), so its two rows sit close
 - [ ] `overflow-x: clip` on `html` and `body`; nothing sized in `100vw`
 
 ---

@@ -236,8 +236,9 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
       seatY = y;
       if (name !== 'stand') waveT = 0;
     },
-    // 'book' | 'remote' | null
-    hold(item) {
+    // 'book' | 'remote' | null; `detail` is the book's { title, by } when he holds one
+    hold(item, detail) {
+      if (item === 'book') heldBook.show(detail);
       heldBook.group.visible = item === 'book';
       remote.visible = item === 'remote';
     },

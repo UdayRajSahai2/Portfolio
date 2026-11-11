@@ -1,11 +1,13 @@
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { mat, mesh, box, at, canvasTex } from './build.js';
 import { X0, X1, ZB, ZF, H, FRONT_Z } from './layout.js';
 
 // Light, the ground outside, the floor, the three walls and the bunting.
-export function buildShell(scene, { root, P, rand }) {
+export function buildShell(scene, { root, P, rand, timeOfDay }) {
   // ── lights: daylight from the top left, as the page's shadows fall ──
-  scene.add(new THREE.HemisphereLight(P.pageBg, P.wall, 2.1));
+  const hemi = new THREE.HemisphereLight(P.pageBg, P.wall, 2.1);
+  scene.add(hemi);
   const sun = new THREE.DirectionalLight(P.pageBg, 1.9);
   sun.position.set(-10, 16, 12);
   sun.castShadow = true;
@@ -15,6 +17,31 @@ export function buildShell(scene, { root, P, rand }) {
   sun.shadow.normalBias = 0.03;
   scene.add(sun);
 
+  // ── day and night (ROOM-07): at night the sky goes dark, moonlight takes the
+  // sun's place and the room is lit warm from inside ──
+  const c = (hex) => new THREE.Color(hex);
+  const DAY = { sky: c(P.pageBg), up: c(P.pageBg), down: c(P.wall), hemi: 2.1, sun: c(P.pageBg), sunI: 1.9 };
+  const NIGHT = { sky: c(P.skyNight), up: c(P.light), down: c(P.woodDark), hemi: 1.15, sun: c(P.sugar), sunI: 0.45 };
+  scene.background = DAY.sky.clone();
+  const mix = { k: 0 };
+  const apply = () => {
+    const k = mix.k;
+    scene.background.lerpColors(DAY.sky, NIGHT.sky, k);
+    hemi.color.lerpColors(DAY.up, NIGHT.up, k);
+    hemi.groundColor.lerpColors(DAY.down, NIGHT.down, k);
+    hemi.intensity = THREE.MathUtils.lerp(DAY.hemi, NIGHT.hemi, k);
+    sun.color.lerpColors(DAY.sun, NIGHT.sun, k);
+    sun.intensity = THREE.MathUtils.lerp(DAY.sunI, NIGHT.sunI, k);
+  };
+  timeOfDay.push((night, duration) => {
+    gsap.killTweensOf(mix);
+    gsap.to(mix, { k: night ? 1 : 0, duration, ease: 'power2.inOut', onUpdate: apply });
+    if (!duration) {
+      mix.k = night ? 1 : 0;
+      apply();
+    }
+  });
+
   // ── outside: ground and a path to the door ────────────────
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), mat(P.ground, { roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
@@ -22,7 +49,8 @@ export function buildShell(scene, { root, P, rand }) {
   ground.receiveShadow = true;
   ground.userData.wall = true;
   root.add(ground);
-  const pathMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 40), mat(P.path, { roughness: 1 }));
+  // the path lies on the ground; the polygon offset keeps them from flickering (ROOM-08)
+  const pathMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 40), mat(P.path, { roughness: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
   pathMesh.rotation.x = -Math.PI / 2;
   at(pathMesh, 0, -0.02, FRONT_Z + 20);
   pathMesh.receiveShadow = true;
@@ -65,12 +93,23 @@ export function buildShell(scene, { root, P, rand }) {
   const wallBack = mat(P.wall, { roughness: 0.95 });
   const wallSide = mat(P.wallSide, { roughness: 0.95 });
   const back = at(box(X1 - X0 + 0.6, H, 0.3, wallBack), 0, H / 2, ZB - 0.15);
-  const left = at(box(0.3, H, ZF - ZB + 0.3), X0 - 0.15, H / 2, (ZB + ZF) / 2);
-  const right = at(box(0.3, H, ZF - ZB + 0.3), X1 + 0.15, H / 2, (ZB + ZF) / 2);
-  left.material = wallSide;
-  right.material = wallSide;
+  const left = at(box(0.3, H, ZF - ZB + 0.3, wallSide), X0 - 0.15, H / 2, (ZB + ZF) / 2);
+  const right = at(box(0.3, H, ZF - ZB + 0.3, wallSide), X1 + 0.15, H / 2, (ZB + ZF) / 2);
   for (const w of [back, left, right]) w.userData.wall = true;
   root.add(back, left, right);
+  // a wall between the camera and the room steps aside, so the view can go all the way round
+  const walls = [
+    { mesh: back, faces: (p) => p.z > ZB },
+    { mesh: left, faces: (p) => p.x > X0 },
+    { mesh: right, faces: (p) => p.x < X1 },
+  ];
+  function faceWalls(camPos) {
+    for (const w of walls) {
+      const show = w.faces(camPos);
+      if (show && !w.mesh.parent) root.add(w.mesh);
+      else if (!show && w.mesh.parent) w.mesh.removeFromParent(); // hidden is not gone: raycasts still hit it
+    }
+  }
   root.add(at(box(X1 - X0, 0.22, 0.05, P.trim), 0, 0.11, ZB + 0.02));
   root.add(at(box(0.05, 0.22, ZF - ZB, P.trim), X0 + 0.02, 0.11, (ZB + ZF) / 2));
   root.add(at(box(0.05, 0.22, ZF - ZB, P.trim), X1 - 0.02, 0.11, (ZB + ZF) / 2));
@@ -96,4 +135,5 @@ export function buildShell(scene, { root, P, rand }) {
       root.add(f);
     }
   }
+  return { faceWalls };
 }

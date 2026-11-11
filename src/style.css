@@ -3,6 +3,7 @@
  * axes: light/rounded-sans/chromatic-yellow · posture: full-palette · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4 · weakest: H, the 3D room competes with the panel; the scene shifts aside and the dock hides under the sheet on phones */
 /* Hallmark · dismissed F4 · .btn is Hum's card-stock secondary (sound, back), only .btn--primary is pear, and it appears once, on the door */
+/* Hallmark · dismissed F5 · .time-icon is the sun itself, a 14px disc at text size beside its label, not an icon set in a coin; at night it becomes a crescent */
 /* Hallmark · exception · Hum bans a drawn character; the owner asked for his avatar at the door, so the character stays, built from 3D primitives */
 @import url("./styles/tokens.css");
 @import url("./styles/base.css");

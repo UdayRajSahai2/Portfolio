@@ -8,7 +8,8 @@ export const POSES = {
   stand: {},
   sit: { ...SIT, elbow: [-0.3, -0.3] },
   type: { ...SIT, shoulder: [-1.32, -1.32], shoulderZ: [0.24, -0.24], elbow: [-0.28, -0.28], head: 0.05 },
-  read: { ...SIT, shoulder: [-0.75, -0.75], shoulderZ: [0.2, -0.2], elbow: [-1.05, -1.05], head: 0.38 },
+  // a low armchair: thighs level on the seat, shins down to the floor, feet flat
+  read: { hip: -1.45, knee: 1.35, shoulder: [-0.75, -0.75], shoulderZ: [0.2, -0.2], elbow: [-1.05, -1.05], head: 0.38 },
   remote: { ...SIT, shoulder: [-0.2, -1.2], elbow: [-0.6, -0.15], head: -0.05 },
   play: { ...SIT, shoulder: [-0.2, -1.05], shoulderZ: [-0.1, -0.15], elbow: [-0.5, -0.35], head: 0.35 },
   bench: { bodyRX: -HALF_PI, hip: -0.25, knee: 1.5, shoulder: [-HALF_PI, -HALF_PI], shoulderZ: [-0.12, 0.12] },

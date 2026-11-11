@@ -54,3 +54,15 @@ test('the TV has one channel per kind, each with a title (ACT-03)', () => {
   assert.deepEqual(ch.map((c) => c.kind).sort(), ['anime', 'film', 'series']);
   for (const c of ch) assert.ok(c.title && c.label);
 });
+
+test('every book on the shelf has a title and an author, and none is listed twice (ACT-08)', () => {
+  const books = interests.find((i) => i.id === 'books');
+  const titles = [books.reading.title, ...books.shelf.map((b) => b.title)];
+  for (const b of books.shelf) assert.ok(b.title && b.by, JSON.stringify(b));
+  assert.equal(new Set(titles).size, titles.length);
+});
+
+test('a line about a book is short enough for the speech bubble', () => {
+  const books = interests.find((i) => i.id === 'books');
+  for (const b of [books.reading, ...books.shelf]) assert.ok(!b.about || b.about.split(' ').length <= 22, b.title);
+});

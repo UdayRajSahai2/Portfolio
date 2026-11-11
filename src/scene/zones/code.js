@@ -12,7 +12,7 @@ export function buildCode({ root, P, rand, tickers, monitorFiles, languages }) {
   g.add(at(box(1.64, 1.02, 0.08, P.screen, { roughness: 0.5 }), 0, 2.32, -4.55));
   const scr = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.9), new THREE.MeshBasicMaterial({ map: screen.tex, toneMapped: false }));
   scr.userData.noGlow = true;
-  at(scr, 0, 2.33, -4.505);
+  at(scr, 0, 2.33, -4.495); // 1.5 cm off the bezel, so the two never flicker
   g.add(scr);
   g.add(at(box(1.1, 0.05, 0.36, P.steel), 0, 1.585, -3.5));
   const KEYS = 56;
@@ -52,7 +52,8 @@ export function buildCode({ root, P, rand, tickers, monitorFiles, languages }) {
   return {
     group: g,
     stand: { x: -1.2, z: -2.55, look: [-0.2, -4.4] },
-    view: { pos: [2.9, 3.7, 0.4], target: [-0.1, 1.9, -3.9] },
+    // over his right shoulder and close, so the code on the screen can be read
+    view: { pos: [0.75, 3.1, -2.4], target: [0, 2.3, -4.5] },
     activity: { seat: { x: 0, z: -2.88, yaw: Math.PI, y: 0.01 }, pose: 'type' },
     onFocus() {
       screen.restart();

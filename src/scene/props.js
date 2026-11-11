@@ -5,7 +5,8 @@ import { cyl, sphere, at } from './build.js';
 export function plant(P, rand, scale = 1) {
   const g = new THREE.Group();
   g.add(at(cyl(0.34, 0.26, 0.6, P.pot, 24, { roughness: 0.5 }), 0, 0.3, 0));
-  g.add(at(cyl(0.3, 0.3, 0.04, P.woodDark, 24), 0, 0.58, 0));
+  // the soil sits just above the rim; level with it, the two tops flicker
+  g.add(at(cyl(0.3, 0.3, 0.04, P.woodDark, 24), 0, 0.615, 0));
   // leaves grow up and out at uneven angles and heights, like a real clump
   const leaves = [];
   const n = 7;

@@ -1,4 +1,4 @@
-import { esc, renderSection } from './sections.js';
+import { esc, renderSection, renderReading } from './sections.js';
 import { SHEET_QUERY } from './media.js';
 
 // Everything on the page that is not the 3D scene: the intro, the dock, the
@@ -85,6 +85,11 @@ export function createUI({ profile, contact, interests, languages, sections, ava
   });
   syncSound();
 
+  // day and night: the world owns the time of day, this button only asks to switch it
+  const timeBtn = $('#time');
+  timeBtn.querySelector('.time-label').textContent = copy.night;
+  timeBtn.addEventListener('click', () => onAction?.('time'));
+
   function hideBubble() {
     clearTimeout(bubbleTimer);
     clearTimeout(lineTimer);
@@ -157,6 +162,15 @@ export function createUI({ profile, contact, interests, languages, sections, ava
     },
     setPending(id) {
       dock.querySelectorAll('.dock-item').forEach((b) => b.classList.toggle('is-pending', b.dataset.id === id));
+    },
+    // the book he has just sat down with replaces "Reading now" in the open panel
+    showReading(book) {
+      const slot = body.querySelector('.reading-now');
+      if (slot) slot.innerHTML = renderReading(book, copy);
+    },
+    syncTime(night) {
+      timeBtn.setAttribute('aria-pressed', String(night));
+      timeBtn.classList.toggle('is-night', night);
     },
 
     // ── speech ───────────────────────────────────────────
