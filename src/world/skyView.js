@@ -7,7 +7,7 @@ import { createSky } from '../scene/sky.js';
 const STEP = 0.18; // radians per button press at the default zoom
 const KEYS = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', '+': 'in', '=': 'in', '-': 'out', Escape: 'close' };
 
-export function createSkyView({ ui, sound, canvas, font, colors, reduceMotion, onOpen }) {
+export function createSkyView({ ui, sound, canvas, font, colors, reduceMotion, onOpen, onClose }) {
   const sky = createSky({ font, colors, reduceMotion });
   sky.resize(window.innerWidth, window.innerHeight);
 
@@ -31,6 +31,7 @@ export function createSkyView({ ui, sound, canvas, font, colors, reduceMotion, o
     if (!ui.skyOpen) return;
     ui.closeSky();
     sound.close();
+    onClose?.();
   }
 
   // keys go to the sky first, so Escape closes it and not the panel underneath

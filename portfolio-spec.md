@@ -38,7 +38,7 @@ The one action: open a project or get in touch.
 | ROOM-05 | Each zone has one small interaction in close-up: the monitor switches files, a chess piece hops, a book slides out, the TV changes channel, the barbell lifts, the window turns to night and shows the stars. |
 | ROOM-06 | The desk lamp toggles on and off. |
 | ROOM-07 | Day and night: the room opens in day from 06:00 to 18:00 on the visitor's clock and in night otherwise. At night the sky outside is dark, the window shows the night sky, moonlight replaces the sun and the room is lit warm from inside. A Night toggle in the top row switches between them for the visit. The page's paper cards look the same in both. Without WebGL the toggle is hidden. |
-| ROOM-08 | Nothing in the room flickers as the camera moves: surfaces that lie on others (rug, screens, posters, window, paper) sit far enough off them, or draw with a polygon offset. |
+| ROOM-08 | Nothing in the room flickers as the camera moves: surfaces that lie on others (rug, doormat, sign, screens, posters, window, paper) sit far enough off them, or draw with a polygon offset, and the renderer uses a logarithmic depth buffer so this holds on phones too. |
 
 ### Activities (the character does each interest)
 
@@ -89,6 +89,7 @@ The panel opens as soon as the character arrives; the activity plays alongside i
 | UI-01 | A dock lists every section (About, the six interests, Contact) and works by keyboard. It opens the same panels as the room. At 720 px and narrower it is a 4 x 2 grid of short labels, with every section visible at once and no horizontal scrolling. At 560 px and narrower its buttons are 36 px tall, so the two rows sit close (above the 24 px WCAG 2.2 AA minimum). |
 | UI-02 | The panel is a side sheet on landscape screens 721 px and wider, and a bottom sheet on phones and any portrait screen (`SHEET_QUERY` in `ui.js`, the same media query in `style.css`). While it is open, the dock centres beside the side sheet at 1200 px and wider and steps aside below that. Escape and the close button both close it and return focus. |
 | UI-06 | Close-ups fit the part of the screen the panel leaves free: the camera steps back by how much the panel narrows the view, and never leaves the room. The activity stays in view at every size. |
+| UI-07 | Once a close-up has arrived, pinching (touch) or the mouse wheel zooms in and out on it, between 0.4 and 1.2 times its distance, and dragging turns the view a little to either side; both ease to a stop. A pinch never counts as a tap. Leaving the close-up returns to the room view as it was. While the sky view is open the room's controls rest. |
 | UI-03 | Nothing overlaps at 320, 375, 414, 768, 1024, 1440 or 1920 px wide: the header (name and sound) is one row, and the hint sits above the dock in the same column. |
 | UI-04 | A sound toggle, remembered across visits. All sound is synthesised. A Night toggle sits beside it (ROOM-07); on phones both show their icon only. |
 | UI-05 | Without WebGL the intro still shows and Enter opens the dock and panels without the room. With JavaScript off a short static profile with links is shown. |
