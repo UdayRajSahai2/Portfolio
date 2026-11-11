@@ -13,6 +13,8 @@ export const POSES = {
   remote: { ...SIT, shoulder: [-0.2, -1.2], elbow: [-0.6, -0.15], head: -0.05 },
   play: { ...SIT, shoulder: [-0.2, -1.05], shoulderZ: [-0.1, -0.15], elbow: [-0.5, -0.35], head: 0.35 },
   bench: { bodyRX: -HALF_PI, hip: -0.25, knee: 1.5, shoulder: [-HALF_PI, -HALF_PI], shoulderZ: [-0.12, 0.12] },
+  // standing, arms a little out so the dumbbells clear his legs; `curls` bends each elbow
+  curl: { shoulderZ: [-0.28, 0.28], elbow: [-0.15, -0.15], head: 0.12 },
   scope: { bodyRX: 0.16, shoulder: [-1.15, -1.0], shoulderZ: [0.1, -0.1], elbow: [-0.9, -0.75], head: -0.05 },
 };
 

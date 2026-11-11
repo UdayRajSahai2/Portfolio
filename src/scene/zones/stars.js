@@ -105,7 +105,7 @@ export function buildStars({ root, P, rand, D, timeOfDay }) {
   const tube = new THREE.Group();
   at(tube, 0, 2.7, 0);
   tube.rotation.x = 0.5;
-  tube.add(at(cyl(0.13, 0.11, 1.6, P.paper, 24), 0, 0, 0));
+  tube.add(at(cyl(0.11, 0.13, 1.6, P.paper, 24), 0, 0, 0)); // wide end at the objective
   tube.children[0].rotation.x = Math.PI / 2;
   tube.add(at(cyl(0.15, 0.15, 0.18, P.accent2, 24), 0, 0, -0.8));
   tube.children[1].rotation.x = Math.PI / 2;

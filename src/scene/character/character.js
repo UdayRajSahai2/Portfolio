@@ -247,6 +247,7 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
   let target = poseTargets('stand');
   let seatY = 0;
   let press = 1;
+  const curls = [0, 0];
   let flipT = 0;
   let clickT = 0;
   const speed = 4.4;
@@ -298,7 +299,7 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
     turnTo(y) {
       targetYaw = y;
     },
-    // 'stand' | 'sit' | 'type' | 'read' | 'remote' | 'play' | 'bench' | 'scope'; y lifts the body onto a seat
+    // 'stand' | 'sit' | 'type' | 'read' | 'remote' | 'play' | 'bench' | 'curl' | 'scope'; y lifts the body onto a seat
     setPose(name, { y = 0 } = {}) {
       reachAt = null;
       poseName = name;
@@ -315,6 +316,17 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
     // bench press: 0 = bar at the chest, 1 = arms locked out
     set press(p) {
       press = p;
+    },
+    // biceps curl, per arm [left, right]: 0 = arm hanging, 1 = dumbbell at the shoulder
+    curl(left, right) {
+      curls[0] = left;
+      curls[1] = right;
+    },
+    // one hand's centre and turn in the world (i: 0 = -x side, 1 = +x side)
+    handPose(i, pos, quat) {
+      root.updateMatrixWorld(true);
+      hands[i].getWorldPosition(pos);
+      hands[i].getWorldQuaternion(quat);
     },
     // a quick flick of the remote
     click() {
@@ -410,6 +422,12 @@ export function createCharacter(look, { reduceMotion = false, font = 'sans-serif
         const bend = (1 - press) * 1.35;
         elbowAdd[0] = elbowAdd[1] = -bend;
         shoulderAdd[0] = shoulderAdd[1] = bend * 0.45;
+      }
+      if (poseName === 'curl') {
+        for (const i of [0, 1]) {
+          elbowAdd[i] = -curls[i] * 1.95; // the forearm swings up
+          shoulderAdd[i] = -curls[i] * 0.18; // and the elbow drifts forward a little at the top
+        }
       }
       if (clickT > 0) {
         clickT -= dt;
